@@ -15,6 +15,7 @@ name_window = 'frame'
 path_video = 'rtsp://192.168.3.34:554/live/ch4'
 
 model_face_detect_path = './models/mobilenet_v1_0_25/retina'
+warmup_img_path = '/media/manu/samsung/pics/material3000_1920x1080.jpg'  # image size should be same as actual input
 gpuid = 0
 thresh = 0.8
 scales = [1.0]
@@ -22,7 +23,7 @@ flip = False
 
 if __name__ == '__main__':
     detector = RetinaFace(model_face_detect_path, 0, gpuid, 'net3')
-    img = cv2.imread('/media/manu/samsung/pics/material3000_1920x1080.jpg')  # image size should be same as actual input
+    img = cv2.imread(warmup_img_path)
     # warm up
     for _ in range(10):
         faces, landmarks = detector.detect(img, thresh, scales=scales, do_flip=flip)

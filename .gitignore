@@ -1,2 +1,8 @@
 
 *.pyc
+
+models/mobilenet_v1_0_25/
+
+detector_test.jpg
+
+rcnn/pycocotools/_mask.cpython-37m-x86_64-linux-gnu.so

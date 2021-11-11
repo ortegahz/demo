@@ -28,9 +28,10 @@ thresh = 0.5
 scales = [1.0]
 flip = False
 
+face_recog_debug_dir = '/home/manu/tmp/demo_snapshot/'
 face_dataset_dir = '/media/manu/samsung/pics/人脸底图'
 model_face_recog_path = '/media/manu/intel/workspace/insightface_manu_subcenter/models/model,0'
-face_recog_sim_th = 0.5
+face_recog_sim_th = 0.2
 face_recog_dist_th = 2.0
 
 if __name__ == '__main__':
@@ -60,7 +61,7 @@ if __name__ == '__main__':
         bbox = bbox[0, 0:4]
         points = points[0, :].reshape((2, 5)).T
         img_aligned = face_preprocess.preprocess(img, bbox, points, image_size='112,112')
-        out_dir = '/home/manu/tmp'
+        out_dir = face_recog_debug_dir
         out_path = os.path.join(out_dir, stu_name + '.jpg')
         cv2.imwrite(out_path, img_aligned)
         img_aligned = cv2.cvtColor(img_aligned, cv2.COLOR_BGR2RGB)
@@ -108,14 +109,19 @@ if __name__ == '__main__':
                 img_aligned = np.transpose(img_aligned, (2, 0, 1))
                 feat = model.get_feature(img_aligned)
                 for stu_id, stu_name, feat_ref in face_recog_dataset:
-                    # sim = np.dot(feat_ref, feat.T)  # sim is wired
-                    dist = np.sum(np.square(feat_ref - feat))
-                    if dist < face_recog_dist_th:
-                        info = stu_name + ' with dist ' + '%f' % dist
+                    sim = np.dot(feat_ref, feat.T)  # sim is wired
+                    # dist = np.sum(np.square(feat_ref - feat))
+                    # if dist < face_recog_dist_th:
+                    if sim > face_recog_sim_th:
+                        # info = stu_name + ' with dist ' + '%f' % dist
+                        info = stu_name + ' with sim ' + '%f' % sim
                         img = cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
-                        out_dir = './'
+                        # save aligned image for debug reason
+                        out_dir = face_recog_debug_dir
+                        # out_path = os.path.join(out_dir,
+                        #                         '%s_%d_%f' % (stu_name, face_recog_aligned_save_idx, dist) + '.jpg')
                         out_path = os.path.join(out_dir,
-                                                '%s_%d_%f' % (stu_name, face_recog_aligned_save_idx, dist) + '.jpg')
+                                                '%s_%d_%f' % (stu_name, face_recog_aligned_save_idx, sim) + '.jpg')
                         cv2.imwrite(out_path, img_aligned_write)
                         face_recog_aligned_save_idx += 1
 

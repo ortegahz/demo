@@ -73,7 +73,7 @@ class FaceModel:
     data = mx.nd.array(input_blob)
     db = mx.io.DataBatch(data=(data,))
     self.model.forward(db, is_train=False)
-    embedding = self.model.get_outputs()[0].asnumpy()
+    embedding = self.model.get_outputs()[0].asnumpy().astype('float')
     embedding = sklearn.preprocessing.normalize(embedding).flatten()
     return embedding
 

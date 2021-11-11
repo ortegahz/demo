@@ -75,6 +75,8 @@ class FaceModel:
     self.model.forward(db, is_train=False)
     embedding = self.model.get_outputs()[0].asnumpy().astype('float')
     embedding = sklearn.preprocessing.normalize(embedding).flatten()
+    embedding_norm = np.linalg.norm(embedding)
+    assert 1.0 - sys.float_info.epsilon <= embedding_norm <= 1.0 + sys.float_info.epsilon
     return embedding
 
   def get_ga(self, aligned):

@@ -24,14 +24,14 @@ path_video = 'rtsp://192.168.3.233:554/live/ch4'
 model_face_detect_path = './models/mobilenet_v1_0_25/retina'
 warmup_img_path = '/media/manu/samsung/pics/material3000_1920x1080.jpg'  # image size should be same as actual input
 gpuid = 0
-thresh = 0.5
+thresh = 0.3
 scales = [1.0]
 flip = False
 
 face_recog_debug_dir = '/home/manu/tmp/demo_snapshot/'
 face_dataset_dir = '/media/manu/samsung/pics/人脸底图'
 model_face_recog_path = '/media/manu/intel/workspace/insightface_manu_subcenter/models/model,0'
-face_recog_sim_th = 0.2
+face_recog_sim_th = 0.3
 face_recog_dist_th = 2.0
 
 if __name__ == '__main__':

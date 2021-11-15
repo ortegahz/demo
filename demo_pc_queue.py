@@ -21,7 +21,8 @@ name_window = 'frame'
 path_video = 'rtsp://192.168.3.34:554/live/ch4'
 # path_video = 'rtsp://192.168.3.233:554/live/ch4'
 
-model_face_detect_path = './models/mobilenet_v1_0_25/retina'
+model_face_detect_path =\
+    '/media/manu/intel/workspace/insightface_manu_img2rec/RetinaFace/models/manu/mobilenet_v1_0_25/retina'
 warmup_img_path = '/media/manu/samsung/pics/material3000_1920x1080.jpg'  # image size should be same as actual input
 gpuid = 0
 thresh = 0.3
@@ -44,6 +45,8 @@ if __name__ == '__main__':
     face_recog_dataset = []
     model = face_model.FaceModel(gpuid, model_face_recog_path)
     out_dir = face_recog_debug_dir
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
     for path_img in glob.glob(os.path.join(face_dataset_dir, '*.jpg')):
         _, img_name = os.path.split(path_img)
         img_name = img_name.replace('.jpg', '')

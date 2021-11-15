@@ -7,8 +7,6 @@ detector_test.jpg
 
 rcnn/pycocotools/_mask.cpython-37m-x86_64-linux-gnu.so
 
-rcnn/cython/anchors\.pyx
-
 rcnn/processing/assign_levels\.py
 
 rcnn/PY_OP/__init__\.py

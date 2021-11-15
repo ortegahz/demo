@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="674a1f25-d9e8-47f4-aa49-088c654c3948" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo_pc_queue.py" beforeDir="false" afterPath="$PROJECT_DIR$/demo_pc_queue.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rcnn/pycocotools/_mask.c" beforeDir="false" afterPath="$PROJECT_DIR$/rcnn/pycocotools/_mask.c" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -16,7 +18,7 @@
     <SUITE FILE_PATH="coverage/demo$demo_multiprocessing.coverage" NAME="demo_multiprocessing Coverage Results" MODIFIED="1636516711179" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/demo$scratch.coverage" NAME="scratch Coverage Results" MODIFIED="1636516828105" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/demo$demo_rtsp.coverage" NAME="demo_rtsp Coverage Results" MODIFIED="1636363626978" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/demo$demo_pc_queue.coverage" NAME="demo_pc_queue Coverage Results" MODIFIED="1636964565362" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/demo$demo_pc_queue.coverage" NAME="demo_pc_queue Coverage Results" MODIFIED="1636974561407" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
@@ -53,8 +55,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/demo_pc_queue.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="233">
-              <caret line="131" column="30" selection-start-line="131" selection-start-column="30" selection-end-line="131" selection-end-column="30" />
+            <state relative-caret-position="315">
+              <caret line="48" column="27" selection-start-line="48" selection-start-column="27" selection-end-line="48" selection-end-column="27" />
               <folding>
                 <element signature="e#23#65#0" expanded="true" />
               </folding>
@@ -118,7 +120,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -130,11 +131,12 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="true" />
-    <property name="last_opened_file_path" value="/media/manu/intel/workspace/deep_sort" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
@@ -287,17 +289,18 @@
       <workItem from="1636451636676" duration="39437000" />
       <workItem from="1636946818067" duration="347000" />
       <workItem from="1636947185738" duration="7742000" />
+      <workItem from="1636973831597" duration="727000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="65789000" />
+    <option name="totallyTimeSpent" value="66516000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="67" y="25" width="1853" height="1055" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.2634797" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.26737076" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -390,20 +393,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/demo_pc.py" />
     <entry file="file://$PROJECT_DIR$/demo_pc_list.py" />
-    <entry file="file://$USER_HOME$/anaconda3/envs/insightface/lib/python3.6/site-packages/mxnet/base.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="171">
-          <caret line="245" selection-start-line="245" selection-end-line="245" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/anaconda3/envs/insightface/lib/python3.6/site-packages/mxnet/symbol/symbol.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="171">
-          <caret line="1943" selection-start-line="1943" selection-end-line="1943" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$USER_HOME$/anaconda3/envs/insightface/lib/python3.6/site-packages/mxnet/base.py" />
+    <entry file="file://$USER_HOME$/anaconda3/envs/insightface/lib/python3.6/site-packages/mxnet/symbol/symbol.py" />
     <entry file="file://$PROJECT_DIR$/rcnn/processing/bbox_transform.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="15">
@@ -454,13 +445,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/anaconda3/envs/facex/lib/python3.7/site-packages/mxnet/base.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="171">
-          <caret line="254" selection-start-line="254" selection-end-line="254" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$USER_HOME$/anaconda3/envs/facex/lib/python3.7/site-packages/mxnet/base.py" />
     <entry file="file://$PROJECT_DIR$/rt.jpg" />
     <entry file="file://$PROJECT_DIR$/demo_rtsp.py">
       <provider selected="true" editor-type-id="text-editor">
@@ -498,8 +483,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/demo_pc_queue.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="233">
-          <caret line="131" column="30" selection-start-line="131" selection-start-column="30" selection-end-line="131" selection-end-column="30" />
+        <state relative-caret-position="315">
+          <caret line="48" column="27" selection-start-line="48" selection-start-column="27" selection-end-line="48" selection-end-column="27" />
           <folding>
             <element signature="e#23#65#0" expanded="true" />
           </folding>

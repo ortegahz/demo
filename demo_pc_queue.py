@@ -18,8 +18,8 @@ import face_preprocess
 # params
 num_skip = 6  # for speed reason
 name_window = 'frame'
-# path_video = 'rtsp://192.168.3.34:554/live/ch4'
-path_video = 'rtsp://192.168.3.233:554/live/ch4'
+path_video = 'rtsp://192.168.3.34:554/live/ch4'
+# path_video = 'rtsp://192.168.3.233:554/live/ch4'
 
 model_face_detect_path = './models/mobilenet_v1_0_25/retina'
 warmup_img_path = '/media/manu/samsung/pics/material3000_1920x1080.jpg'  # image size should be same as actual input
@@ -31,7 +31,7 @@ flip = False
 face_recog_debug_dir = '/home/manu/tmp/demo_snapshot/'
 face_dataset_dir = '/media/manu/samsung/pics/人脸底图'
 model_face_recog_path = '/media/manu/intel/workspace/insightface_manu_subcenter/models/model,0'
-face_recog_sim_th = 0.3
+face_recog_sim_th = 0.35
 face_recog_dist_th = 2.0
 
 if __name__ == '__main__':
@@ -43,6 +43,7 @@ if __name__ == '__main__':
     print('face recog init start ...')
     face_recog_dataset = []
     model = face_model.FaceModel(gpuid, model_face_recog_path)
+    out_dir = face_recog_debug_dir
     for path_img in glob.glob(os.path.join(face_dataset_dir, '*.jpg')):
         _, img_name = os.path.split(path_img)
         img_name = img_name.replace('.jpg', '')
@@ -53,7 +54,7 @@ if __name__ == '__main__':
         scales_reg = [1.0]
         if max_l > 1920:  # can not detect faces on some large input images
             scales_reg = [0.5]
-        faces, landmarks = detector.detect(img, thresh, scales=scales_reg, do_flip=flip)
+        faces, landmarks = detector.detect(img, 0.8, scales=scales_reg, do_flip=flip)  # using high detect th for reg
         assert len(faces) == 1  # TODO
         # face align and feature extract
         bbox = faces
@@ -61,7 +62,6 @@ if __name__ == '__main__':
         bbox = bbox[0, 0:4]
         points = points[0, :].reshape((2, 5)).T
         img_aligned = face_preprocess.preprocess(img, bbox, points, image_size='112,112')
-        out_dir = face_recog_debug_dir
         out_path = os.path.join(out_dir, stu_name + '.jpg')
         cv2.imwrite(out_path, img_aligned)
         img_aligned = cv2.cvtColor(img_aligned, cv2.COLOR_BGR2RGB)
@@ -108,14 +108,18 @@ if __name__ == '__main__':
                 img_aligned = cv2.cvtColor(img_aligned, cv2.COLOR_BGR2RGB)
                 img_aligned = np.transpose(img_aligned, (2, 0, 1))
                 feat = model.get_feature(img_aligned)
+                [sim_highest, stu_name_highest, isfind] = [0, None, False]
                 for stu_id, stu_name, feat_ref in face_recog_dataset:
                     sim = np.dot(feat_ref, feat.T)  # sim is wired
+                    if sim > sim_highest:
+                        sim_highest = sim
+                        stu_name_highest = stu_name
                     # dist = np.sum(np.square(feat_ref - feat))
                     # if dist < face_recog_dist_th:
                     if sim > face_recog_sim_th:
                         # info = stu_name + ' with dist ' + '%f' % dist
                         info = stu_name + ' with sim ' + '%f' % sim
-                        img = cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
+                        img = cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
                         # save aligned image for debug reason
                         out_dir = face_recog_debug_dir
                         # out_path = os.path.join(out_dir,
@@ -124,6 +128,10 @@ if __name__ == '__main__':
                                                 '%s_%d_%f' % (stu_name, face_recog_aligned_save_idx, sim) + '.jpg')
                         cv2.imwrite(out_path, img_aligned_write)
                         face_recog_aligned_save_idx += 1
+                        isfind = True
+                if not isfind:
+                    info = stu_name_highest + ' with sim ' + '%f' % sim_highest
+                    img = cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
 
             # plot
             for i in range(faces.shape[0]):

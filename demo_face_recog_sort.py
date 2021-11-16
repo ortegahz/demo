@@ -128,7 +128,7 @@ if __name__ == '__main__':
                 img_aligned = cv2.cvtColor(img_aligned, cv2.COLOR_BGR2RGB)
                 img_aligned = np.transpose(img_aligned, (2, 0, 1))
                 feat = model.get_feature(img_aligned)
-                [sim_highest, stu_name_highest, isfind] = [0, None, False]
+                [sim_highest, stu_name_highest, isfind] = [-1, None, False]  # sim range [-1 1]
                 for stu_id, stu_name, feat_ref in face_recog_dataset:
                     sim = np.dot(feat_ref, feat.T)  # sim is wired
                     if sim > sim_highest:

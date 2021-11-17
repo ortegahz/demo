@@ -5,6 +5,7 @@ from multiprocessing import Process, Queue
 import numpy as np
 import cv2
 import process
+import copy
 import glob
 import os
 import sys
@@ -21,6 +22,7 @@ num_skip = 6  # for speed reason
 name_window = 'frame'
 path_video = '/media/manu/samsung/videos/at2021/mp4/Video1.mp4'
 # path_video = 'rtsp://192.168.3.233:554/live/ch4'
+# path_video = 'rtsp://192.168.3.34:554/live/ch4'
 
 model_face_detect_path =\
     '/media/manu/intel/workspace/insightface_manu_img2rec/RetinaFace/models/manu/mobilenet_v1_0_25/retina'
@@ -34,6 +36,7 @@ face_recog_debug_dir = '/home/manu/tmp/demo_snapshot/'
 face_dataset_dir = '/media/manu/samsung/pics/人脸底图'
 model_face_recog_path = '/media/manu/intel/workspace/insightface_manu_subcenter/models/model,0'
 face_recog_sim_th = 0.35
+face_recog_sim_th_avg = 0.25
 face_recog_dist_th = 2.0
 
 sort_max_age = 1
@@ -58,6 +61,7 @@ if __name__ == '__main__':
     face_recog_dataset = []
     model = face_model.FaceModel(gpuid, model_face_recog_path)
     out_dir = face_recog_debug_dir
+    os.system('rm %s -rvf' % out_dir)
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
     for path_img in glob.glob(os.path.join(face_dataset_dir, '*.jpg')):
@@ -79,7 +83,7 @@ if __name__ == '__main__':
         points = points[0, :].reshape((2, 5)).T
         img_aligned = face_preprocess.preprocess(img, bbox, points, image_size='112,112')
         out_path = os.path.join(out_dir, stu_name + '.jpg')
-        cv2.imwrite(out_path, img_aligned)
+        # cv2.imwrite(out_path, img_aligned)
         img_aligned = cv2.cvtColor(img_aligned, cv2.COLOR_BGR2RGB)
         img_aligned = np.transpose(img_aligned, (2, 0, 1))
         feat = model.get_feature(img_aligned)
@@ -103,13 +107,14 @@ if __name__ == '__main__':
     face_recog_aligned_save_idx = 0
     while True:
         item_frame = q_decoder.get()
-        frame = item_frame[0]
-        h, w, c = frame.shape
+        frame_org = item_frame[0]
+        frame = copy.deepcopy(frame_org)
+        h, w, c = frame_org.shape
         if w > 1920:
             scales = [0.5]
-        faces, landmarks = detector.detect(frame, thresh, scales=scales, do_flip=flip)
+        faces, landmarks = detector.detect(frame_org, thresh, scales=scales, do_flip=flip)
 
-        ret = mot_tracker.update(faces, landmarks)
+        ret = mot_tracker.update(faces, landmarks, len(face_recog_dataset))
         faces = ret[:, 0:5]
         landmarks = ret[:, 5:].reshape(ret.shape[0], 5, 2)
 
@@ -118,45 +123,71 @@ if __name__ == '__main__':
 
             # recognition
             for i in range(faces.shape[0]):
+                track = mot_tracker.trackers[len(faces)-i-1]  # reversed order
                 box = faces[i].astype(int)
                 bbox = faces[i]
-                landmarks_recog = landmarks[i]
+                # landmarks_recog = landmarks[i]
+                landmarks_recog = track.landmark
                 points = landmarks_recog.transpose().reshape(1, 10)
                 bbox = bbox[0:4]
                 points = points[0, :].reshape((2, 5)).T
-                img_aligned = face_preprocess.preprocess(frame, bbox, points, image_size='112,112')
+                img_aligned = face_preprocess.preprocess(frame_org, bbox, points, image_size='112,112')
                 img_aligned_write = img_aligned
                 img_aligned = cv2.cvtColor(img_aligned, cv2.COLOR_BGR2RGB)
                 img_aligned = np.transpose(img_aligned, (2, 0, 1))
                 feat = model.get_feature(img_aligned)
                 [sim_highest, stu_name_highest, isfind] = [-1, None, False]  # sim range [-1 1]
-                for stu_id, stu_name, feat_ref in face_recog_dataset:
+                for face_dataset_idx, (stu_id, stu_name, feat_ref) in enumerate(face_recog_dataset):
                     sim = np.dot(feat_ref, feat.T)  # sim is wired
                     if sim > sim_highest:
+                        face_dataset_idx_highest = face_dataset_idx
                         sim_highest = sim
                         stu_name_highest = stu_name
                     # dist = np.sum(np.square(feat_ref - feat))
                     # if dist < face_recog_dist_th:
-                    if sim > face_recog_sim_th:
-                        # info = stu_name + ' with dist ' + '%f' % dist
-                        info = stu_name + ' with sim ' + '%f' % sim
+                    # if sim > face_recog_sim_th:
+                    #     # info = stu_name + ' with dist ' + '%f' % dist
+                    #     info = stu_name + ' with sim ' + '%f' % sim
+                    #     img = cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
+                    #     # save aligned image for debug reason
+                    #     out_dir = face_recog_debug_dir
+                    #     # out_path = os.path.join(out_dir,
+                    #     #                         '%s_%d_%f' % (stu_name, face_recog_aligned_save_idx, dist) + '.jpg')
+                    #     out_path = os.path.join(out_dir,
+                    #                             '%s_%d_%f' % (stu_name, face_recog_aligned_save_idx, sim) + '.jpg')
+                    #     cv2.imwrite(out_path, img_aligned_write)
+                    #     face_recog_aligned_save_idx += 1
+                    #     isfind = True
+                if not isfind:
+                    # info = stu_name_highest + ' ' + '%f' % sim_highest
+                    # img = cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
+
+                    track.update_reg_scores(sim_highest, face_dataset_idx_highest, img_aligned_write)
+                    # reg_scores_softmax = np.exp(track.reg_scores) / sum(np.exp(track.reg_scores))
+                    # avg_score_highest_idx = np.argmax(reg_scores_softmax)
+                    # avg_score_highest = reg_scores_softmax[avg_score_highest_idx]
+                    avg_score_highest_idx = np.argmax(track.reg_scores)
+                    avg_score_highest = track.reg_scores[avg_score_highest_idx]
+                    (stu_id, stu_name, feat_ref) = face_recog_dataset[avg_score_highest_idx]
+                    info = stu_name + ' ' + '%f' % avg_score_highest
+                    if avg_score_highest > face_recog_sim_th_avg:
                         img = cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
                         # save aligned image for debug reason
-                        out_dir = face_recog_debug_dir
-                        # out_path = os.path.join(out_dir,
-                        #                         '%s_%d_%f' % (stu_name, face_recog_aligned_save_idx, dist) + '.jpg')
-                        out_path = os.path.join(out_dir,
-                                                '%s_%d_%f' % (stu_name, face_recog_aligned_save_idx, sim) + '.jpg')
-                        cv2.imwrite(out_path, img_aligned_write)
-                        face_recog_aligned_save_idx += 1
-                        isfind = True
-                if not isfind:
-                    info = stu_name_highest + ' with sim ' + '%f' % sim_highest
-                    img = cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
+                        if track.reg_peak_score_fresh:
+                            out_dir = face_recog_debug_dir
+                            out_path = os.path.join(out_dir, '%s_%d_%f_%d' %
+                                                    (stu_name, face_recog_aligned_save_idx, track.reg_peak_score, track.age) + '.jpg')
+                            cv2.imwrite(out_path, track.reg_peak_score_snap)
+                            face_recog_aligned_save_idx += 1
+                            track.reg_peak_score_fresh = False
+                    # else:
+                    #     img = cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
+
 
             # plot
             for i in range(faces.shape[0]):
                 # print('score', faces[i][4])
+                track = mot_tracker.trackers[len(faces) - i - 1]  # reversed order
                 box = faces[i].astype(int)
                 sort_id = box[4].astype(np.int32)
                 color_id = sort_colours[sort_id % sort_max_track_num, :]
@@ -165,6 +196,10 @@ if __name__ == '__main__':
                 fontScale = 1.2
                 cv2.putText(frame, info,
                             (box[0], box[1]+int(fontScale * 25)), cv2.FONT_HERSHEY_SIMPLEX, fontScale, color_id, 2)
+                info = 'age' + ' %d' % track.age
+                fontScale = 1.2
+                cv2.putText(frame, info,
+                            (box[0], box[1]+int(fontScale * 25 * 2)), cv2.FONT_HERSHEY_SIMPLEX, fontScale, color_id, 2)
                 if landmarks is not None:
                     landmark5 = landmarks[i].astype(int)
                     # print(landmark.shape)

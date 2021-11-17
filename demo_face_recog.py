@@ -19,7 +19,8 @@ import face_preprocess
 num_skip = 6  # for speed reason
 name_window = 'frame'
 # path_video = 'rtsp://192.168.3.34:554/live/ch4'
-path_video = 'rtsp://192.168.3.233:554/live/ch4'
+# path_video = 'rtsp://192.168.3.233:554/live/ch4'
+path_video = '/media/manu/samsung/videos/at2021/mp4/Video1.mp4'
 
 model_face_detect_path =\
     '/media/manu/intel/workspace/insightface_manu_img2rec/RetinaFace/models/manu/mobilenet_v1_0_25/retina'
@@ -121,7 +122,7 @@ if __name__ == '__main__':
                     # if dist < face_recog_dist_th:
                     if sim > face_recog_sim_th:
                         # info = stu_name + ' with dist ' + '%f' % dist
-                        info = stu_name + ' with sim ' + '%f' % sim
+                        info = stu_name + ' ' + '%f' % sim
                         img = cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
                         # save aligned image for debug reason
                         out_dir = face_recog_debug_dir
@@ -133,7 +134,7 @@ if __name__ == '__main__':
                         face_recog_aligned_save_idx += 1
                         isfind = True
                 if not isfind:
-                    info = stu_name_highest + ' with sim ' + '%f' % sim_highest
+                    info = stu_name_highest + ' ' + '%f' % sim_highest
                     img = cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
 
             # plot

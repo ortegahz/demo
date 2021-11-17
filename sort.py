@@ -96,7 +96,7 @@ class KalmanBoxTracker(object):
   This class represents the internal state of individual tracked objects observed as bbox.
   """
   count = 0
-  def __init__(self,bbox,landmark):
+  def __init__(self,bbox,landmark,reg_id_num):
     """
     Initialises a tracker using initial bounding box.
     """
@@ -120,6 +120,19 @@ class KalmanBoxTracker(object):
     self.hit_streak = 0
     self.age = 0
     self.landmark = landmark
+    self.reg_scores = np.zeros(reg_id_num)
+    self.reg_peak_score_snap = None
+    self.reg_peak_score = -1
+    self.reg_peak_score_fresh = False
+
+  def update_reg_scores(self, cur_reg_score_highest, cur_reg_score_highest_idx, cur_reg_score_highest_snap):
+    if len(self.reg_scores) > 0:
+      self.reg_scores[cur_reg_score_highest_idx] = \
+        (self.reg_scores[cur_reg_score_highest_idx] * self.age + cur_reg_score_highest) / (self.age + 1)
+      if cur_reg_score_highest > self.reg_peak_score:
+        self.reg_peak_score = cur_reg_score_highest
+        self.reg_peak_score_snap = cur_reg_score_highest_snap
+        self.reg_peak_score_fresh = True
 
   def update(self,bbox):
     """
@@ -208,7 +221,7 @@ class Sort(object):
     self.trackers = []
     self.frame_count = 0
 
-  def update(self, dets=np.empty((0, 5)), landmarks=np.empty((0, 10))):
+  def update(self, dets=np.empty((0, 5)), landmarks=np.empty((0, 10)), reg_id_num=0):
     """
     Params:
       dets - a numpy array of detections in the format [[x1,y1,x2,y2,score],[x1,y1,x2,y2,score],...]
@@ -239,7 +252,7 @@ class Sort(object):
 
     # create and initialise new trackers for unmatched detections
     for i in unmatched_dets:
-        trk = KalmanBoxTracker(dets[i,:], landmarks[i,:,:])
+        trk = KalmanBoxTracker(dets[i,:], landmarks[i,:,:], reg_id_num)
         self.trackers.append(trk)
     i = len(self.trackers)
     for trk in reversed(self.trackers):

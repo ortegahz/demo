@@ -34,7 +34,7 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/demo_face_recog_sort.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="240">
@@ -42,6 +42,15 @@
               <folding>
                 <element signature="e#23#65#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/sort.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="210">
+              <caret line="237" column="51" selection-start-line="237" selection-start-column="51" selection-end-line="237" selection-end-column="51" />
             </state>
           </provider>
         </entry>
@@ -60,6 +69,7 @@
       <find>decoder_</find>
       <find>process_decoder_</find>
       <find>color</find>
+      <find>get_state</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -78,6 +88,7 @@
         <option value="$PROJECT_DIR$/demo_pc_queue.py" />
         <option value="$PROJECT_DIR$/video2det.py" />
         <option value="$PROJECT_DIR$/demo_face_recog_sort.py" />
+        <option value="$PROJECT_DIR$/sort.py" />
       </list>
     </option>
   </component>
@@ -294,57 +305,120 @@
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="right" id="Remote Host" order="3" />
-      <window_info anchor="right" id="SciView" order="4" />
+      <window_info anchor="right" id="SciView" order="4" weight="0.32962757" />
       <window_info anchor="right" id="Database" order="5" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
   </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/demo_face_recog_sort.py</url>
+          <line>111</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
   <component name="debuggerHistoryManager">
+    <expressions id="evaluateCodeFragment">
+      <expression>
+        <expression-string>faces = ret[:, 0:5]
+landmarks = ret[:, 5:-1]</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>CODE_FRAGMENT</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>faces = ret[:, 0:6]
+landmarks = ret[:, 6:-1]</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>CODE_FRAGMENT</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>for trk in reversed(self.trackers):
+    d, landmark = trk.get_state()
+    if (trk.time_since_update &lt; 1) and (trk.hit_streak &gt;= self.min_hits or self.frame_count &lt;= self.min_hits):
+      ret.append([np.concatenate((d[0],[trk.id+1])).reshape(1,-1), landmark]) # +1 as MOT benchmark requires positive
+    i -= 1
+    # remove dead tracklet
+    if(trk.time_since_update &gt; self.max_age):
+      self.trackers.pop(i)</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>CODE_FRAGMENT</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>for trk in reversed(self.trackers):
+    d, landmark = trk.get_state()
+    if (trk.time_since_update &lt; 1) and (trk.hit_streak &gt;= self.min_hits or self.frame_count &lt;= self.min_hits):
+      ret.append([np.concatenate((d[0],[trk.id+1])).reshape(1,-1), landmark]) # +1 as MOT benchmark requires positive
+    i -= 1
+    # remove dead tracklet
+    if(trk.time_since_update &gt; self.max_age):
+      self.trackers.pop(i)
+if(len(ret)&gt;0):
+  return np.concatenate(ret)</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>CODE_FRAGMENT</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>for trk in reversed(self.trackers):
+     d, landmark = trk.get_state()
+     if (trk.time_since_update &lt; 1) and (trk.hit_streak &gt;= self.min_hits or self.frame_count &lt;= self.min_hits):
+       ret.append([np.concatenate((d[0],[trk.id+1])).reshape(1,-1), landmark.reshape(1,-1)]) # +1 as MOT benchmark requires positive
+     i -= 1
+     # remove dead tracklet
+     if(trk.time_since_update &gt; self.max_age):
+       self.trackers.pop(i)</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>CODE_FRAGMENT</evaluation-mode>
+      </expression>
+    </expressions>
     <expressions id="evaluateExpression">
       <expression>
-        <expression-string>len(trackers)</expression-string>
+        <expression-string>landmarks = ret[:, 5:]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>frame.shape[0]</expression-string>
+        <expression-string>np.concatenate(np.concatenate((d[0],[trk.id+1])).reshape(1,-1), landmark.reshape(1,-1), axis=1)</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>frame.size()</expression-string>
+        <expression-string>np.concatenate((np.concatenate((d[0],[trk.id+1])).reshape(1,-1), landmark.reshape(1,-1)), axis=1)</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>frame.shape()</expression-string>
+        <expression-string>np.concatenate(np.concatenate((d[0],[trk.id+1])).reshape(1,-1), landmark.reshape(1,-1), axis=1</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>os.system('rm %s -rvf' % out_dir)</expression-string>
+        <expression-string>np.concatenate(np.concatenate((d[0],[trk.id+1])).reshape(1,-1), landmark.reshape(1,-1))</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>os.system('rm % -rvf' % out_dir)</expression-string>
+        <expression-string>np.concatenate((d[0],[trk.id+1])).reshape(1,-1)</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>assert embedding_norm &gt;= 1.0 - sys.float_info.epsilon and embedding_norm &lt;= 1.0 + -1</expression-string>
+        <expression-string>landmark.reshape(1,-1)</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>embedding_norm &gt;= 1.0 - sys.float_info.epsilon and embedding_norm &lt;= 1.0 + 1</expression-string>
+        <expression-string>np.concatenate(ret)</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
       <expression>
-        <expression-string>embedding_norm &lt;= 1.0 + sys.float_info.epsilon</expression-string>
+        <expression-string>ret[]</expression-string>
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
@@ -473,6 +547,13 @@
           <folding>
             <element signature="e#23#65#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/sort.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="237" column="51" selection-start-line="237" selection-start-column="51" selection-end-line="237" selection-end-column="51" />
         </state>
       </provider>
     </entry>

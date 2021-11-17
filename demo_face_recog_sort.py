@@ -19,7 +19,7 @@ import sort
 # params
 num_skip = 6  # for speed reason
 name_window = 'frame'
-path_video = 'rtsp://192.168.3.34:554/live/ch4'
+path_video = '/media/manu/samsung/videos/at2021/mp4/Video1.mp4'
 # path_video = 'rtsp://192.168.3.233:554/live/ch4'
 
 model_face_detect_path =\
@@ -109,8 +109,9 @@ if __name__ == '__main__':
             scales = [0.5]
         faces, landmarks = detector.detect(frame, thresh, scales=scales, do_flip=flip)
 
-        trackers = mot_tracker.update(faces)
-        faces = trackers
+        ret = mot_tracker.update(faces, landmarks)
+        faces = ret[:, 0:5]
+        landmarks = ret[:, 5:].reshape(ret.shape[0], 5, 2)
 
         if faces is not None:
             print('find', faces.shape[0], 'faces')

@@ -114,20 +114,25 @@ if __name__ == '__main__':
             scales = [0.5]
         faces, landmarks = detector.detect(frame_org, thresh, scales=scales, do_flip=flip)
 
-        ret = mot_tracker.update(faces, landmarks, len(face_recog_dataset))
-        faces = ret[:, 0:5]
-        landmarks = ret[:, 5:].reshape(ret.shape[0], 5, 2)
+        mot_tracker.update(faces, landmarks, len(face_recog_dataset))
+        # faces = ret[:, 0:5]
+        # landmarks = ret[:, 5:].reshape(ret.shape[0], 5, 2)
 
-        if faces is not None:
-            print('find', faces.shape[0], 'faces')
+        if mot_tracker.trackers is not None:
+            # print('find', faces.shape[0], 'faces')
 
             # recognition
-            for i in range(faces.shape[0]):
-                track = mot_tracker.trackers[len(faces)-i-1]  # reversed order
-                box = faces[i].astype(int)
-                bbox = faces[i]
+            # for i in range(faces.shape[0]):
+            for track in mot_tracker.trackers:
+                # track = mot_tracker.trackers[len(faces)-i-1]  # reversed order
+                # landmarks_recog = track.landmark
+                # box = faces[i].astype(int)
+                # bbox = faces[i]
+                d, landmarks_recog = track.get_state()
+                bbox = np.concatenate((d[0],[track.id+1])).reshape(1,-1)
+                bbox = np.squeeze(bbox)
+                box = bbox.astype(int)
                 # landmarks_recog = landmarks[i]
-                landmarks_recog = track.landmark
                 points = landmarks_recog.transpose().reshape(1, 10)
                 bbox = bbox[0:4]
                 points = points[0, :].reshape((2, 5)).T
@@ -180,15 +185,20 @@ if __name__ == '__main__':
                             cv2.imwrite(out_path, track.reg_peak_score_snap)
                             face_recog_aligned_save_idx += 1
                             track.reg_peak_score_fresh = False
-                    # else:
-                    #     img = cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
+                    else:
+                        img = cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
 
 
             # plot
-            for i in range(faces.shape[0]):
+            # for i in range(faces.shape[0]):
+            for track in mot_tracker.trackers:
+                d, landmarks_recog = track.get_state()
+                bbox = np.concatenate((d[0],[track.id+1])).reshape(1,-1)
+                bbox = np.squeeze(bbox)
+                box = bbox.astype(int)
                 # print('score', faces[i][4])
-                track = mot_tracker.trackers[len(faces) - i - 1]  # reversed order
-                box = faces[i].astype(int)
+                # track = mot_tracker.trackers[len(faces) - i - 1]  # reversed order
+                # box = faces[i].astype(int)
                 sort_id = box[4].astype(np.int32)
                 color_id = sort_colours[sort_id % sort_max_track_num, :]
                 cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), color_id, 2)
@@ -200,8 +210,8 @@ if __name__ == '__main__':
                 fontScale = 1.2
                 cv2.putText(frame, info,
                             (box[0], box[1]+int(fontScale * 25 * 2)), cv2.FONT_HERSHEY_SIMPLEX, fontScale, color_id, 2)
-                if landmarks is not None:
-                    landmark5 = landmarks[i].astype(int)
+                if landmarks_recog is not None:
+                    landmark5 = landmarks_recog.astype(int)
                     # print(landmark.shape)
                     for l in range(landmark5.shape[0]):
                         color = (0, 0, 255)

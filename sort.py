@@ -96,7 +96,7 @@ class KalmanBoxTracker(object):
   This class represents the internal state of individual tracked objects observed as bbox.
   """
   count = 0
-  def __init__(self,bbox):
+  def __init__(self,bbox,landmark):
     """
     Initialises a tracker using initial bounding box.
     """
@@ -119,6 +119,7 @@ class KalmanBoxTracker(object):
     self.hits = 0
     self.hit_streak = 0
     self.age = 0
+    self.landmark = landmark
 
   def update(self,bbox):
     """
@@ -148,7 +149,7 @@ class KalmanBoxTracker(object):
     """
     Returns the current bounding box estimate.
     """
-    return convert_x_to_bbox(self.kf.x)
+    return convert_x_to_bbox(self.kf.x), self.landmark
 
 
 def associate_detections_to_trackers(detections,trackers,iou_threshold = 0.3):
@@ -207,7 +208,7 @@ class Sort(object):
     self.trackers = []
     self.frame_count = 0
 
-  def update(self, dets=np.empty((0, 5))):
+  def update(self, dets=np.empty((0, 5)), landmarks=np.empty((0, 10))):
     """
     Params:
       dets - a numpy array of detections in the format [[x1,y1,x2,y2,score],[x1,y1,x2,y2,score],...]
@@ -234,16 +235,17 @@ class Sort(object):
     # update matched trackers with assigned detections
     for m in matched:
       self.trackers[m[1]].update(dets[m[0], :])
+      self.trackers[m[1]].landmark = landmarks[m[0],:,:]
 
     # create and initialise new trackers for unmatched detections
     for i in unmatched_dets:
-        trk = KalmanBoxTracker(dets[i,:])
+        trk = KalmanBoxTracker(dets[i,:], landmarks[i,:,:])
         self.trackers.append(trk)
     i = len(self.trackers)
     for trk in reversed(self.trackers):
-        d = trk.get_state()[0]
+        d, landmark = trk.get_state()
         if (trk.time_since_update < 1) and (trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits):
-          ret.append(np.concatenate((d,[trk.id+1])).reshape(1,-1)) # +1 as MOT benchmark requires positive
+          ret.append(np.concatenate((np.concatenate((d[0],[trk.id+1])).reshape(1,-1), landmark.reshape(1,-1)), axis=1)) # +1 as MOT benchmark requires positive
         i -= 1
         # remove dead tracklet
         if(trk.time_since_update > self.max_age):

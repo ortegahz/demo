@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="674a1f25-d9e8-47f4-aa49-088c654c3948" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/demo_face_recog.py" beforeDir="false" afterPath="$PROJECT_DIR$/demo_face_recog.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo_face_recog_sort.py" beforeDir="false" afterPath="$PROJECT_DIR$/demo_face_recog_sort.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sort.py" beforeDir="false" afterPath="$PROJECT_DIR$/sort.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -59,7 +59,7 @@
         <entry file="file://$PROJECT_DIR$/demo_face_recog_sort.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="263">
-              <caret line="125" column="36" selection-start-line="125" selection-start-column="36" selection-end-line="125" selection-end-column="36" />
+              <caret line="125" column="46" lean-forward="true" selection-start-line="125" selection-start-column="46" selection-end-line="125" selection-end-column="46" />
               <folding>
                 <element signature="e#23#65#0" expanded="true" />
               </folding>
@@ -299,12 +299,12 @@
       <workItem from="1636973831597" duration="1824000" />
       <workItem from="1637030947537" duration="10053000" />
       <workItem from="1637054311998" duration="44000" />
-      <workItem from="1637115598371" duration="15368000" />
+      <workItem from="1637115598371" duration="16010000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="93078000" />
+    <option name="totallyTimeSpent" value="93720000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="67" y="25" width="1853" height="1055" extended-state="6" />
@@ -342,7 +342,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/demo_face_recog_sort.py</url>
-          <line>116</line>
+          <line>111</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
       </breakpoints>
@@ -587,7 +587,7 @@ if(len(ret)&gt;0):
     <entry file="file://$PROJECT_DIR$/demo_face_recog_sort.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="263">
-          <caret line="125" column="36" selection-start-line="125" selection-start-column="36" selection-end-line="125" selection-end-column="36" />
+          <caret line="125" column="46" lean-forward="true" selection-start-line="125" selection-start-column="46" selection-end-line="125" selection-end-column="46" />
           <folding>
             <element signature="e#23#65#0" expanded="true" />
           </folding>

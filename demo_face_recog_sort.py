@@ -36,7 +36,7 @@ face_recog_debug_dir = '/home/manu/tmp/demo_snapshot/'
 face_dataset_dir = '/media/manu/samsung/pics/人脸底图'
 model_face_recog_path = '/media/manu/intel/workspace/insightface_manu_subcenter/models/model,0'
 face_recog_sim_th = 0.35
-face_recog_sim_th_avg = 0.25
+face_recog_sim_th_avg = 0.3
 face_recog_dist_th = 2.0
 
 sort_max_age = 1

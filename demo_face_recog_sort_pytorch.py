@@ -2,6 +2,7 @@
 
 # libs
 from multiprocessing import Process, Queue
+from sklearn import preprocessing
 import numpy as np
 import cv2
 import process
@@ -11,11 +12,12 @@ import os
 import sys
 
 from retinaface import RetinaFace
-import face_model
+from backbones import get_model
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'common'))
 import face_preprocess
 import sort
+import torch
 
 # params
 num_skip = 6  # for speed reason
@@ -34,10 +36,14 @@ flip = False
 
 face_recog_debug_dir = '/home/manu/tmp/demo_snapshot/'
 face_dataset_dir = '/media/manu/samsung/pics/人脸底图'
-model_face_recog_path = '/media/manu/intel/workspace/insightface_manu_subcenter/models/model,0'
-face_recog_sim_th = 0.35
-face_recog_sim_th_avg = 0.3
+network_name = 'r100'
+path_weight = '/home/manu/tmp/glint360k_cosface_r100_fp16_0.1_bs1024/backbone.pth'
+local_rank = 'cuda:0'
+epsilon = 1e-10
+face_recog_sim_th = 0.5
+face_recog_sim_th_avg = 0.35
 face_recog_dist_th = 2.0
+face_recog_min_age_th = 10
 
 sort_max_age = 1
 sort_min_hits = 3
@@ -59,7 +65,9 @@ if __name__ == '__main__':
 
     print('face recog init start ...')
     face_recog_dataset = []
-    model = face_model.FaceModel(gpuid, model_face_recog_path)
+    face_recog_net = get_model(network_name, fp16=False).to(local_rank)
+    face_recog_net.load_state_dict(torch.load(path_weight, map_location=torch.device(local_rank)))
+    face_recog_net.eval()
     out_dir = face_recog_debug_dir
     os.system('rm %s -rvf' % out_dir)
     if not os.path.exists(out_dir):
@@ -86,7 +94,13 @@ if __name__ == '__main__':
         # cv2.imwrite(out_path, img_aligned)
         img_aligned = cv2.cvtColor(img_aligned, cv2.COLOR_BGR2RGB)
         img_aligned = np.transpose(img_aligned, (2, 0, 1))
-        feat = model.get_feature(img_aligned)
+        img_aligned = torch.from_numpy(img_aligned).unsqueeze(0).float()
+        img_aligned.div_(255).sub_(0.5).div_(0.5)
+        img_aligned = img_aligned.cuda()
+        feat = face_recog_net(img_aligned).cpu().detach().numpy().astype('float')
+        feat = preprocessing.normalize(feat).flatten()
+        feat_norm = np.linalg.norm(feat)
+        assert 1.0 - epsilon <= feat_norm <= 1.0 + epsilon
         item = (stu_id, stu_name, feat)
         face_recog_dataset.append(item)
         print('record student %s with id %s' % (stu_name, stu_id))
@@ -140,7 +154,13 @@ if __name__ == '__main__':
                 img_aligned_write = img_aligned
                 img_aligned = cv2.cvtColor(img_aligned, cv2.COLOR_BGR2RGB)
                 img_aligned = np.transpose(img_aligned, (2, 0, 1))
-                feat = model.get_feature(img_aligned)
+                img_aligned = torch.from_numpy(img_aligned).unsqueeze(0).float()
+                img_aligned.div_(255).sub_(0.5).div_(0.5)
+                img_aligned = img_aligned.cuda()
+                feat = face_recog_net(img_aligned).cpu().detach().numpy().astype('float')
+                feat = preprocessing.normalize(feat).flatten()
+                feat_norm = np.linalg.norm(feat)
+                assert 1.0 - epsilon <= feat_norm <= 1.0 + epsilon
                 [sim_highest, stu_name_highest, isfind] = [-1, None, False]  # sim range [-1 1]
                 for face_dataset_idx, (stu_id, stu_name, feat_ref) in enumerate(face_recog_dataset):
                     sim = np.dot(feat_ref, feat.T)  # sim is wired
@@ -148,21 +168,15 @@ if __name__ == '__main__':
                         face_dataset_idx_highest = face_dataset_idx
                         sim_highest = sim
                         stu_name_highest = stu_name
-                    # dist = np.sum(np.square(feat_ref - feat))
-                    # if dist < face_recog_dist_th:
-                    # if sim > face_recog_sim_th:
-                    #     # info = stu_name + ' with dist ' + '%f' % dist
-                    #     info = stu_name + ' with sim ' + '%f' % sim
-                    #     img = cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
-                    #     # save aligned image for debug reason
-                    #     out_dir = face_recog_debug_dir
-                    #     # out_path = os.path.join(out_dir,
-                    #     #                         '%s_%d_%f' % (stu_name, face_recog_aligned_save_idx, dist) + '.jpg')
-                    #     out_path = os.path.join(out_dir,
-                    #                             '%s_%d_%f' % (stu_name, face_recog_aligned_save_idx, sim) + '.jpg')
-                    #     cv2.imwrite(out_path, img_aligned_write)
-                    #     face_recog_aligned_save_idx += 1
-                    #     isfind = True
+                    if sim > face_recog_sim_th:
+                        info = stu_name + ' ' + '%f' % sim
+                        img = cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
+                        out_dir = face_recog_debug_dir
+                        out_path = os.path.join(out_dir,
+                                                'face_recog_sim_th_%s_%d_%f' % (stu_name, face_recog_aligned_save_idx, sim) + '.jpg')
+                        cv2.imwrite(out_path, img_aligned_write)
+                        face_recog_aligned_save_idx += 1
+                        isfind = True
                 if not isfind:
                     # info = stu_name_highest + ' ' + '%f' % sim_highest
                     # img = cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
@@ -175,7 +189,7 @@ if __name__ == '__main__':
                     avg_score_highest = track.reg_scores[avg_score_highest_idx]
                     (stu_id, stu_name, feat_ref) = face_recog_dataset[avg_score_highest_idx]
                     info = stu_name + ' ' + '%f' % avg_score_highest
-                    if avg_score_highest > face_recog_sim_th_avg:
+                    if avg_score_highest > face_recog_sim_th_avg and track.age > face_recog_min_age_th:
                         img = cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
                         # save aligned image for debug reason
                         if track.reg_peak_score_fresh:

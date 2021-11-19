@@ -12,3 +12,5 @@ rcnn/processing/assign_levels\.py
 rcnn/PY_OP/__init__\.py
 
 rcnn/pycocotools/_mask\.c
+
+rcnn/pycocotools/_mask\.cpython-36m-x86_64-linux-gnu\.so

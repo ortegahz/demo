@@ -2,6 +2,7 @@
 
 # libs
 from multiprocessing import Process, Queue
+from sklearn import preprocessing
 import numpy as np
 import cv2
 import process
@@ -9,9 +10,10 @@ import copy
 import glob
 import os
 import sys
+import torch
 
 from retinaface import RetinaFace
-import face_model
+from backbones import get_model
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'common'))
 import face_preprocess
@@ -20,8 +22,8 @@ import face_preprocess
 num_skip = 6  # for speed reason
 name_window = 'frame'
 # path_video = 'rtsp://192.168.3.34:554/live/ch4'
-# path_video = 'rtsp://192.168.3.233:554/live/ch4'
-path_video = '/media/manu/samsung/videos/at2021/mp4/Video1.mp4'
+path_video = 'rtsp://192.168.3.233:554/live/ch4'
+# path_video = '/media/manu/samsung/videos/at2021/mp4/Video1.mp4'
 
 model_face_detect_path =\
     '/media/manu/intel/workspace/insightface_manu_img2rec/RetinaFace/models/manu/mobilenet_v1_0_25/retina'
@@ -33,8 +35,11 @@ flip = False
 
 face_recog_debug_dir = '/home/manu/tmp/demo_snapshot/'
 face_dataset_dir = '/media/manu/samsung/pics/人脸底图'
-model_face_recog_path = '/media/manu/intel/workspace/insightface_manu_subcenter/models/model,0'
-face_recog_sim_th = 0.35
+network_name = 'r100'
+path_weight = '/home/manu/tmp/glint360k_cosface_r100_fp16_0.1_bs1024/backbone.pth'
+local_rank = 'cuda:0'
+epsilon = 1e-10
+face_recog_sim_th = 0.45
 face_recog_dist_th = 2.0
 
 if __name__ == '__main__':
@@ -45,7 +50,9 @@ if __name__ == '__main__':
 
     print('face recog init start ...')
     face_recog_dataset = []
-    model = face_model.FaceModel(gpuid, model_face_recog_path)
+    face_recog_net = get_model(network_name, fp16=False).to(local_rank)
+    face_recog_net.load_state_dict(torch.load(path_weight, map_location=torch.device(local_rank)))
+    face_recog_net.eval()
     out_dir = face_recog_debug_dir
     os.system('rm %s -rvf' % out_dir)
     if not os.path.exists(out_dir):
@@ -69,10 +76,19 @@ if __name__ == '__main__':
         points = points[0, :].reshape((2, 5)).T
         img_aligned = face_preprocess.preprocess(img, bbox, points, image_size='112,112')
         out_path = os.path.join(out_dir, stu_name + '.jpg')
-        cv2.imwrite(out_path, img_aligned)
+        # cv2.imwrite(out_path, img_aligned)
         img_aligned = cv2.cvtColor(img_aligned, cv2.COLOR_BGR2RGB)
         img_aligned = np.transpose(img_aligned, (2, 0, 1))
-        feat = model.get_feature(img_aligned)
+        img_aligned = torch.from_numpy(img_aligned).unsqueeze(0).float()
+        img_aligned.div_(255).sub_(0.5).div_(0.5)
+        img_aligned = img_aligned.cuda()
+        feat = face_recog_net(img_aligned).cpu().detach().numpy().astype('float')
+        feat = preprocessing.normalize(feat).flatten()
+        feat_norm = np.linalg.norm(feat)
+        assert 1.0 - epsilon <= feat_norm <= 1.0 + epsilon
+        # img_aligned = cv2.cvtColor(img_aligned, cv2.COLOR_BGR2RGB)
+        # img_aligned = np.transpose(img_aligned, (2, 0, 1))
+        # feat = model.get_feature(img_aligned)
         item = (stu_id, stu_name, feat)
         face_recog_dataset.append(item)
         print('record student %s with id %s' % (stu_name, stu_id))
@@ -114,7 +130,16 @@ if __name__ == '__main__':
                 img_aligned_write = img_aligned
                 img_aligned = cv2.cvtColor(img_aligned, cv2.COLOR_BGR2RGB)
                 img_aligned = np.transpose(img_aligned, (2, 0, 1))
-                feat = model.get_feature(img_aligned)
+                img_aligned = torch.from_numpy(img_aligned).unsqueeze(0).float()
+                img_aligned.div_(255).sub_(0.5).div_(0.5)
+                img_aligned = img_aligned.cuda()
+                feat = face_recog_net(img_aligned).cpu().detach().numpy().astype('float')
+                feat = preprocessing.normalize(feat).flatten()
+                feat_norm = np.linalg.norm(feat)
+                assert 1.0 - epsilon <= feat_norm <= 1.0 + epsilon
+                # img_aligned = cv2.cvtColor(img_aligned, cv2.COLOR_BGR2RGB)
+                # img_aligned = np.transpose(img_aligned, (2, 0, 1))
+                # feat = model.get_feature(img_aligned)
                 [sim_highest, stu_name_highest, isfind] = [0, None, False]
                 for stu_id, stu_name, feat_ref in face_recog_dataset:
                     sim = np.dot(feat_ref, feat.T)  # sim is wired

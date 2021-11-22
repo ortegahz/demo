@@ -25,7 +25,6 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from skimage import io
 
-import cv2
 import glob
 import time
 import argparse
@@ -97,7 +96,7 @@ class KalmanBoxTracker(object):
   This class represents the internal state of individual tracked objects observed as bbox.
   """
   count = 0
-  def __init__(self,bbox):
+  def __init__(self,bbox,landmark,reg_id_num):
     """
     Initialises a tracker using initial bounding box.
     """
@@ -120,6 +119,20 @@ class KalmanBoxTracker(object):
     self.hits = 0
     self.hit_streak = 0
     self.age = 0
+    self.landmark = landmark
+    self.reg_scores = np.zeros(reg_id_num)
+    self.reg_peak_score_snap = None
+    self.reg_peak_score = -1
+    self.reg_peak_score_fresh = False
+
+  def update_reg_scores(self, cur_reg_score_highest, cur_reg_score_highest_idx, cur_reg_score_highest_snap):
+    if len(self.reg_scores) > 0:
+      self.reg_scores[cur_reg_score_highest_idx] = \
+        (self.reg_scores[cur_reg_score_highest_idx] * self.age + cur_reg_score_highest) / (self.age + 1)
+      if cur_reg_score_highest > self.reg_peak_score:
+        self.reg_peak_score = cur_reg_score_highest
+        self.reg_peak_score_snap = cur_reg_score_highest_snap
+        self.reg_peak_score_fresh = True
 
   def update(self,bbox):
     """
@@ -149,7 +162,7 @@ class KalmanBoxTracker(object):
     """
     Returns the current bounding box estimate.
     """
-    return convert_x_to_bbox(self.kf.x)
+    return convert_x_to_bbox(self.kf.x), self.landmark
 
 
 def associate_detections_to_trackers(detections,trackers,iou_threshold = 0.3):
@@ -208,7 +221,7 @@ class Sort(object):
     self.trackers = []
     self.frame_count = 0
 
-  def update(self, dets=np.empty((0, 5))):
+  def update(self, dets=np.empty((0, 5)), landmarks=np.empty((0, 0, 10)), reg_id_num=0):
     """
     Params:
       dets - a numpy array of detections in the format [[x1,y1,x2,y2,score],[x1,y1,x2,y2,score],...]
@@ -235,16 +248,18 @@ class Sort(object):
     # update matched trackers with assigned detections
     for m in matched:
       self.trackers[m[1]].update(dets[m[0], :])
+      self.trackers[m[1]].landmark = landmarks[m[0],:,:]
 
     # create and initialise new trackers for unmatched detections
     for i in unmatched_dets:
-        trk = KalmanBoxTracker(dets[i,:])
+        trk = KalmanBoxTracker(dets[i,:], landmarks[i,:,:], reg_id_num)
         self.trackers.append(trk)
     i = len(self.trackers)
     for trk in reversed(self.trackers):
-        d = trk.get_state()[0]
-        if (trk.time_since_update < 1) and (trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits):
-          ret.append(np.concatenate((d,[trk.id+1])).reshape(1,-1)) # +1 as MOT benchmark requires positive
+        d, landmark = trk.get_state()
+        # if (trk.time_since_update < 1) and (trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits):
+        if trk.time_since_update < 1:
+          ret.append(np.concatenate((np.concatenate((d[0],[trk.id+1])).reshape(1,-1), landmark.reshape(1,-1)), axis=1)) # +1 as MOT benchmark requires positive
         i -= 1
         # remove dead tracklet
         if(trk.time_since_update > self.max_age):

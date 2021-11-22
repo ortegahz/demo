@@ -26,8 +26,7 @@ name_window = 'frame'
 # path_video = 'rtsp://192.168.3.233:554/live/ch4'
 path_video = 'rtsp://192.168.3.34:554/live/ch4'
 
-model_face_detect_path =\
-    '/media/manu/intel/workspace/insightface_manu_img2rec/RetinaFace/models/manu/mobilenet_v1_0_25/retina'
+model_face_detect_path = '/home/manu/tmp/mobilenet_v1_0_25/retina'
 warmup_img_path = '/media/manu/samsung/pics/material3000_1920x1080.jpg'  # image size should be same as actual input
 gpuid = 0
 thresh = 0.3

@@ -116,13 +116,16 @@ if __name__ == '__main__':
         pred = model(img, augment=False)[0]
         pred = non_max_suppression(pred, conf_thres, iou_thres, classes=classes, agnostic=agnostic_nms)
         det = pred[0]
-        if det is not None and len(det):
-            det[:, :4] = scale_coords(img.shape[2:], det[:, :4], frame.shape).round()
 
-        det = det[:, 0:5].detach().cpu().numpy()
+        if det is not None:
+            det[:, :4] = scale_coords(img.shape[2:], det[:, :4], frame.shape).round()
+            det = det[:, 0:5].detach().cpu().numpy()
+        else:
+            det = np.empty((0, 5))
         mot_tracker.update(det)
 
-        if mot_tracker.trackers is not None:
+        print('num of trackers --> %d' % len(mot_tracker.trackers))
+        if len(mot_tracker.trackers) > 0:
 
             # plot
             for track in mot_tracker.trackers:

@@ -32,7 +32,7 @@ if __name__ == '__main__':
                 print(f'saving {path_save}')
                 cv2.imwrite(path_save, frame)
             else:
-                break
+                print(f'skipping {path_save}')
 
             cap.release()
             time.sleep(time_delay_s)

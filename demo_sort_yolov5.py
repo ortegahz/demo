@@ -28,7 +28,7 @@ name_window = 'frame'
 # path_video = '/media/manu/samsung/videos/at2021/mp4/Video1.mp4'
 # path_video = '/media/manu/samsung/videos/at2021/mp4/Video1年级.mp4'
 # path_video = 'rtsp://192.168.3.233:554/live/ch2'
-path_video = 'rtsp://192.168.3.34:554/live/ch2'
+path_video = 'rtsp://192.168.3.51:554/ch2'
 
 weights = ['/home/manu/tmp/yolov5s_e300_ceil_relua_rfocus_synbn_weightse300/weights/best.pt', ]
 device = torch.device('cuda:0')

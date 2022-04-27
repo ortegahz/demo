@@ -20,11 +20,10 @@ import face_preprocess
 num_skip = 6  # for speed reason
 name_window = 'frame'
 # path_video = 'rtsp://192.168.3.34:554/live/ch4'
-# path_video = 'rtsp://192.168.3.233:554/live/ch4'
-path_video = '/media/manu/samsung/videos/at2021/mp4/Video1.mp4'
+path_video = 'rtsp://192.168.3.225:554/ch4'
+# path_video = '/media/manu/samsung/videos/at2021/mp4/Video1.mp4'
 
-model_face_detect_path =\
-    '/media/manu/intel/workspace/insightface_manu_img2rec/RetinaFace/models/manu/mobilenet_v1_0_25/retina'
+model_face_detect_path = '/home/manu/tmp/mobilenet_v1_0_25/retina'
 warmup_img_path = '/media/manu/samsung/pics/material3000_1920x1080.jpg'  # image size should be same as actual input
 gpuid = 0
 thresh = 0.3
@@ -33,9 +32,9 @@ flip = False
 
 face_recog_debug_dir = '/home/manu/tmp/demo_snapshot/'
 face_dataset_dir = '/media/manu/samsung/pics/人脸底图'
-model_face_recog_path = '/media/manu/intel/workspace/insightface_manu_subcenter/models/model,0'
+model_face_recog_path = '/home/manu/tmp/t3m0.4/model,28'
 face_recog_sim_th = 0.35
-face_recog_dist_th = 2.0
+# face_recog_dist_th = 2.0
 
 if __name__ == '__main__':
     print('face detect init start ...')
@@ -115,7 +114,7 @@ if __name__ == '__main__':
                 img_aligned = cv2.cvtColor(img_aligned, cv2.COLOR_BGR2RGB)
                 img_aligned = np.transpose(img_aligned, (2, 0, 1))
                 feat = model.get_feature(img_aligned)
-                [sim_highest, stu_name_highest, isfind] = [0, None, False]
+                [sim_highest, stu_name_highest, isfind] = [0, 'null', False]
                 for stu_id, stu_name, feat_ref in face_recog_dataset:
                     sim = np.dot(feat_ref, feat.T)  # sim is wired
                     if sim > sim_highest:

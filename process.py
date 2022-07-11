@@ -10,6 +10,7 @@ def process_decoder(q, path_video, num_skip):
 
     while cap.isOpened():
         ret, frame = cap.read()
+        frame = cv2.imread('/home/manu/tmp/抓拍/13841937.jpg')
         if ret is True:
             idx_frame += 1
             if idx_frame % num_skip == 0:

@@ -19,11 +19,12 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'common'))
 import face_preprocess
 
 # params
-num_skip = 6  # for speed reason
+num_skip = 50  # for speed reason
 name_window = 'frame'
 # path_video = 'rtsp://192.168.3.34:554/live/ch4'
 # path_video = 'rtsp://192.168.3.233:554/live/ch4'
-path_video = '/media/manu/samsung/videos/at2021/mp4/Video1.mp4'
+# path_video = '/media/manu/samsung/videos/at2021/mp4/Video1.mp4'
+path_video = '/home/manu/文档/高一8班.mp4'
 
 model_face_detect_path = '/home/manu/tmp/mobilenet_v1_0_25/retina'
 warmup_img_path = '/media/manu/samsung/pics/material3000_1920x1080.jpg'  # image size should be same as actual input
@@ -38,7 +39,7 @@ network_name = 'r100'
 path_weight = '/home/manu/tmp/glint360k_cosface_r100_fp16_0.1_bs1024/backbone.pth'
 local_rank = 'cuda:0'
 epsilon = 1e-10
-face_recog_sim_th = 0.40
+face_recog_sim_th = 0.35
 face_recog_dist_th = 2.0
 
 if __name__ == '__main__':
@@ -56,10 +57,14 @@ if __name__ == '__main__':
     os.system('rm %s -rvf' % out_dir)
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
+    stu_id_num = 0
     for path_img in glob.glob(os.path.join(face_dataset_dir, '*.jpg')):
         _, img_name = os.path.split(path_img)
         img_name = img_name.replace('.jpg', '')
-        stu_id, stu_name = img_name.split('_')
+        stu_id_num += 1
+        stu_id = str(stu_id_num)
+        stu_name = img_name
+        # stu_id, stu_name = img_name.split('_')
         img = cv2.imread(path_img)
         h, w, c = img.shape
         max_l = max(h, w)
@@ -88,7 +93,7 @@ if __name__ == '__main__':
         # img_aligned = cv2.cvtColor(img_aligned, cv2.COLOR_BGR2RGB)
         # img_aligned = np.transpose(img_aligned, (2, 0, 1))
         # feat = model.get_feature(img_aligned)
-        item = (stu_id, stu_name, feat)
+        item = (stu_id, stu_name, feat, -1)  # -1 for init value of highest score
         face_recog_dataset.append(item)
         print('record student %s with id %s' % (stu_name, stu_id))
     print('face recog init done')
@@ -140,7 +145,7 @@ if __name__ == '__main__':
                 # img_aligned = np.transpose(img_aligned, (2, 0, 1))
                 # feat = model.get_feature(img_aligned)
                 [sim_highest, stu_name_highest, isfind] = [0, None, False]
-                for stu_id, stu_name, feat_ref in face_recog_dataset:
+                for j, (stu_id, stu_name, feat_ref, hs) in enumerate(face_recog_dataset):
                     sim = np.dot(feat_ref, feat.T)  # sim is wired
                     if sim > sim_highest:
                         sim_highest = sim
@@ -155,14 +160,17 @@ if __name__ == '__main__':
                         out_dir = face_recog_debug_dir
                         # out_path = os.path.join(out_dir,
                         #                         '%s_%d_%f' % (stu_name, face_recog_aligned_save_idx, dist) + '.jpg')
-                        out_path = os.path.join(out_dir,
-                                                '%s_%d_%f' % (stu_name, face_recog_aligned_save_idx, sim) + '.jpg')
-                        cv2.imwrite(out_path, img_aligned_write)
+                        # out_path = os.path.join(out_dir,
+                        #                         '%s_%d_%f' % (stu_name, face_recog_aligned_save_idx, sim) + '.jpg')
+                        out_path = os.path.join(out_dir, '%s' % stu_name + '.jpg')
+                        if sim > hs:
+                            cv2.imwrite(out_path, img_aligned_write)
+                            face_recog_dataset[j] = (stu_id, stu_name, feat_ref, sim)
                         face_recog_aligned_save_idx += 1
                         isfind = True
                 if not isfind:
                     info = stu_name_highest + ' ' + '%f' % sim_highest
-                    img = cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
+                    # img = cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
 
             # plot
             for i in range(faces.shape[0]):

@@ -6,15 +6,14 @@ import shutil
 if __name__ == '__main__':
     # params
     rtsp_addrs = [
-        'rtsp://192.168.3.34:554/live/ch1',
-        'rtsp://192.168.3.51:554/ch2',
-        'rtsp://192.168.3.222:554/live/ch4',
+        'rtsp://192.168.3.20:554/ch0_1',
+        'rtsp://192.168.3.206:554/ch0_1',
     ]
     dir_save = '/home/manu/tmp/snapshots'
     b_del_dir_save = True
     time_delay_s = 10
 
-    if b_del_dir_save:
+    if b_del_dir_save and os.path.exists(dir_save):
         shutil.rmtree(dir_save)
     if not os.path.exists(dir_save):
         os.mkdir(dir_save)

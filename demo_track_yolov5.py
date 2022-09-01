@@ -12,7 +12,7 @@ import glob
 import os
 import sys
 
-import sort
+import track
 
 from models.experimental import attempt_load
 from utils.datasets import LoadStreams, LoadImages
@@ -40,10 +40,10 @@ agnostic_nms = False
 half = True
 imgsz = 416
 
-sort_max_age = 1
-sort_min_hits = 3
-sort_iou_threshold = 0.3
-sort_max_track_num = 32
+track_max_age = 1
+track_min_hits = 3
+track_iou_threshold = 0.3
+track_max_track_num = 32
 
 
 def letterbox(img, new_shape=(640, 640), color=(114, 114, 114), auto=True, scaleFill=False, scaleup=True):
@@ -81,10 +81,10 @@ def letterbox(img, new_shape=(640, 640), color=(114, 114, 114), auto=True, scale
 
 if __name__ == '__main__':
     print('tracker init start ...')
-    sort_colours = np.random.rand(sort_max_track_num, 3) * 255
-    mot_tracker = sort.Sort(max_age=sort_max_age,
-                            min_hits=sort_min_hits,
-                            iou_threshold=sort_iou_threshold)  # create instance of the SORT tracker
+    track_colours = np.random.rand(track_max_track_num, 3) * 255
+    mot_tracker = track.Track(max_age=track_max_age,
+                            min_hits=track_min_hits,
+                            iou_threshold=track_iou_threshold)  # create instance of the track tracker
     print('tracker init done')
 
     print('detect init start ...')
@@ -137,10 +137,10 @@ if __name__ == '__main__':
                 # print('score', faces[i][4])
                 # track = mot_tracker.trackers[len(faces) - i - 1]  # reversed order
                 # box = faces[i].astype(int)
-                sort_id = box[4].astype(np.int32)
-                color_id = sort_colours[sort_id % sort_max_track_num, :]
+                track_id = box[4].astype(np.int32)
+                color_id = track_colours[track_id % track_max_track_num, :]
                 cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), color_id, 2)
-                info = 'tid' + ' %d' % sort_id
+                info = 'tid' + ' %d' % track_id
                 fontScale = 1.2
                 cv2.putText(frame, info,
                             (box[0], box[1]+int(fontScale * 25)), cv2.FONT_HERSHEY_SIMPLEX, fontScale, color_id, 2)

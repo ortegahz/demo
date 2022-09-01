@@ -1,33 +1,36 @@
-from threading import Thread, Lock
+from multiprocessing import Process, Queue
 import time
 import cv2
 
 
 class Decoder:
-    def __init__(self, path):
-        self.capture = cv2.VideoCapture(path)
-        self.width = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
-        self.height = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        self.success_reading, self.frame = self.capture.read()
-        self.read_lock = Lock()
-        self.process = Thread(target=self.__update, args=())
+    def __init__(self, path, qs=10):
+        self.queue = Queue(qs)
+        self.process = Process(target=self.__update, args=(path, self.queue))
         self.process.daemon = True
         self.process.start()
 
-    def __update(self):
-        while self.success_reading:
-            grabbed, frame = self.capture.read()
-            with self.read_lock:
-                self.success_reading = grabbed
-                self.frame = frame
+    @staticmethod
+    def __update(path, q):
+        cap = cv2.VideoCapture(path)
+
+        while cap.isOpened():
+            ret, frame = cap.read()
+            # time.sleep(0.02)
+            if q.full():
+                q.get()
+            if ret is True:
+                q.put(frame)
+                print('[Decoder] number of frames in the queue: %d' % q.qsize())
+            else:
+                break
+
+        print('[Decoder] exit !')
+        cap.release()
 
     def read(self):
-        with self.read_lock:
-            frame = self.frame.copy()
+        frame = self.queue.get()
         return frame
-
-    def __exit__(self):
-        self.capture.release()
 
 
 class FPSTracker:

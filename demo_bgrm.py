@@ -16,13 +16,13 @@ from model import MattingBase, MattingRefine
 model_type = 'mattingrefine'
 model_backbone = 'resnet50'
 model_backbone_scale = 0.25
-model_refine_mode = 'sampling'
+model_refine_mode = 'full'
 model_refine_sample_pixels = 80000
 model_refine_threshold = 0.7
-model_checkpoint = '/home/manu/tmp/epoch-29.pth'
+model_checkpoint = '/home/manu/tmp/epoch-3-iter-207261-vloss-0.013960338487448369-vlossl-0.013960338487448369.pth'
 
-path_video = 'rtsp://192.168.1.180:554/ch0_1'
-# path_video = '/media/manu/samsung/videos/modnet/20220518-172655.mp4'
+path_video = 'rtsp://192.168.1.31:554/live/av0'
+# path_video = '/media/manu/samsung/videos/modnet/正常.mp4'
 window_width, window_height = 1920, 1080
 
 # Load model
@@ -63,7 +63,7 @@ with torch.no_grad():
             frame = decoder.read()
             src = cv2_frame_to_cuda(frame)
             pha, fgr = model(src, bgr)[:2]
-            res = pha * fgr + (1 - pha) * torch.zeros_like(fgr)
+            res = pha * fgr + (1 - pha) * torch.ones_like(fgr)
             res = res.mul(255).byte().cpu().permute(0, 2, 3, 1).numpy()[0]
             res = cv2.cvtColor(res, cv2.COLOR_RGB2BGR)
             key = displayer.step(res)

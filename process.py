@@ -10,6 +10,7 @@ def process_decoder(q, path_video, num_skip):
 
     while cap.isOpened():
         ret, frame = cap.read()
+        # frame = cv2.resize(frame, None, fx=0.5, fy=0.5)
         if ret is True:
             idx_frame += 1
             if idx_frame % num_skip == 0:

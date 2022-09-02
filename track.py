@@ -14,6 +14,8 @@ import time
 import argparse
 from filterpy.kalman import KalmanFilter
 
+import queue
+
 np.random.seed(0)
 
 
@@ -85,6 +87,9 @@ class KalmanBoxTracker(object):
     self.hits = 0
     self.hit_streak = 0
     self.age = 0
+    self.traces = queue.Queue(30)
+    self.trace_l = None
+    self.trace_c = None
 
   def update(self,bbox):
     self.time_since_update = 0
@@ -102,6 +107,10 @@ class KalmanBoxTracker(object):
       self.hit_streak = 0
     self.time_since_update += 1
     self.history.append(convert_x_to_bbox(self.kf.x))
+    if self.traces.full():
+      self.trace_l = self.traces.get()
+    self.traces.put(self.history[-1])
+    self.trace_c = self.history[-1]
     return self.history[-1]
 
   def get_state(self):

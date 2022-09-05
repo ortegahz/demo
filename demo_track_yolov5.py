@@ -156,11 +156,11 @@ if __name__ == '__main__':
     p_decoder = Process(target=process.process_decoder, args=(q_decoder, path_video, num_skip), daemon=True)
     p_decoder.start()
 
-    cv2.namedWindow(name_window, cv2.WINDOW_NORMAL)
-    cv2.resizeWindow(name_window, 960, 540)
-    # cv2.namedWindow(name_window, cv2.WND_PROP_FULLSCREEN)
-    # cv2.moveWindow(name_window, 0, 0)
-    # cv2.setWindowProperty(name_window, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+    # cv2.namedWindow(name_window, cv2.WINDOW_NORMAL)
+    # cv2.resizeWindow(name_window, 960, 540)
+    cv2.namedWindow(name_window, cv2.WND_PROP_FULLSCREEN)
+    cv2.moveWindow(name_window, 0, 0)
+    cv2.setWindowProperty(name_window, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
     face_recog_aligned_save_idx = 0
     while True:
         item_frame = q_decoder.get()
@@ -224,12 +224,12 @@ if __name__ == '__main__':
                 det_bhv[:, :4] = scale_coords(img.shape[2:], det_bhv[:, :4], frame.shape).round()
                 det_bhv = det_bhv.detach().cpu().numpy()
 
-                det_bhv = det_bhv[
-                    (det_bhv[:, 0] > box_act[0]) &
-                    (det_bhv[:, 1] > box_act[1]) &
-                    (det_bhv[:, 2] < box_act[2]) &
-                    (det_bhv[:, 3] < box_act[3])
-                    ]
+                # det_bhv = det_bhv[
+                #     (det_bhv[:, 0] > box_act[0]) &
+                #     (det_bhv[:, 1] > box_act[1]) &
+                #     (det_bhv[:, 2] < box_act[2]) &
+                #     (det_bhv[:, 3] < box_act[3])
+                #     ]
 
                 if det_bhv is not None:
                     is_bhv = True

@@ -1,6 +1,7 @@
 # author: zerg
 
 # libs
+import multiprocessing as mp
 from multiprocessing import Process, Manager
 from sklearn import preprocessing
 import numpy as np
@@ -24,6 +25,7 @@ from utils.general import (
 from utils.torch_utils import select_device, load_classifier, time_synchronized
 from utils.decoder import process_decoder
 from utils.displayer import process_displayer
+from utils.recognizer import process_recognizer
 
 sys.path.append('/media/manu/kingstop/workspace/ByteTrack')
 from yolox.tracker.byte_tracker import BYTETracker
@@ -37,15 +39,6 @@ path_video = '/media/manu/samsung/videos/siamrpn/20200707.mp4'
 # path_video = '/media/manu/samsung/videos/at2021/mp4/Video1年级.mp4'
 # path_video = 'rtsp://192.168.3.233:554/live/ch2'
 # path_video = 'rtsp://192.168.3.51:554/ch2'
-
-weights = ['/home/manu/tmp/yolov5s_e300_ceil_relua_rfocus_synbn_weightse300/weights/best.pt', ]
-device = torch.device('cuda:0')
-conf_thres = 0.5
-iou_thres = 0.5
-classes = None
-agnostic_nms = False
-half = True
-imgsz = 416
 
 max_track_num = 30
 buff_len = 30
@@ -89,6 +82,15 @@ def letterbox(img, new_shape=(640, 640), color=(114, 114, 114), auto=True, scale
 
 
 if __name__ == '__main__':
+    weights = ['/home/manu/tmp/yolov5s_e300_ceil_relua_rfocus_synbn_weightse300/weights/best.pt', ]
+    device = torch.device('cuda:0')
+    conf_thres = 0.5
+    iou_thres = 0.5
+    classes = None
+    agnostic_nms = False
+    half = True
+    imgsz = 416
+
     print('tracker init start ...')
     sort_colours = np.random.rand(max_track_num, 3) * 255
 
@@ -110,28 +112,32 @@ if __name__ == '__main__':
     # cv2.resizeWindow(name_window, 960, 540)
     face_recog_aligned_save_idx = 0
 
+    mp.set_start_method('forkserver')
+
     with Manager() as manager:
+
         arr_frames = manager.list()
         dict_tracker_res = manager.dict()
+        dict_recog_res = manager.dict()
 
         p_decoder = Process(target=process_decoder, args=(path_video, buff_len, arr_frames), daemon=True)
         p_decoder.start()
 
-        p_displayer = Process(target=process_displayer, args=(max_track_num, buff_len,
-                                                              arr_frames, dict_tracker_res), daemon=True)
+        p_displayer = Process(target=process_displayer,
+                              args=(max_track_num, buff_len, arr_frames, dict_tracker_res, dict_recog_res),
+                              daemon=True)
+        p_displayer.start()
+
+        p_displayer = Process(target=process_recognizer, args=(buff_len, arr_frames, dict_recog_res), daemon=True)
         p_displayer.start()
 
         item_frame = []
         idx_frame_last = 0
         while True:
-            if len(arr_frames) == 30:
-                # item_frame = copy.deepcopy(arr_frames[-1])
-                item_frame = arr_frames[-1]
-                # arr_frames.pop(0)
-            if len(item_frame) < 1:
+            if len(arr_frames) < 1:
                 continue
+            item_frame = arr_frames[-1]
             idx_frame, frame = item_frame
-            # print('get frame %d' % idx_frame)
             if idx_frame_last == idx_frame:
                 continue
             idx_frame_last = idx_frame

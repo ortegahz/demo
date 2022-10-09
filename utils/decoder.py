@@ -12,14 +12,14 @@ def process_decoder(path_video, buff_len, arr_frames):
         ret, frame = cap.read()
         if ret is True:
             idx_frame += 1
-            if len(arr_frames) == buff_len:
+            if len(arr_frames) == buff_len * 2:
                 arr_frames.pop(0)
                 print('[process_decoder] dropping frame !!!')
             arr_frames.append([idx_frame, frame])
-            # print('[process_decoder] number of frames in the queue: %d' % len(arr_frames))
+            print('[process_decoder] number of frames in the arr_frames: %d' % len(arr_frames))
         else:
             break
 
-        time.sleep(0.030)
+        time.sleep(0.020)
 
     cap.release()

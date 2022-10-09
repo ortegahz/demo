@@ -1,21 +1,14 @@
-from multiprocessing import Process, Manager
+def minStartValue(nums):
+    pre_sum = ans = 1
+    for num in nums:
+        cur_sum = pre_sum + num
+        ans += -cur_sum + 1 if cur_sum < 1 else 0
+        pre_sum += -cur_sum + 1 if cur_sum < 1 else 0
+        pre_sum += num
+    return ans
 
 
-def f(d, l):
-    d[1] = '1'
-    d['2'] = 2
-    d[0.25] = None
-    l.reverse()
-
-
-if __name__ == '__main__':
-    with Manager() as manager:
-        d = manager.dict()
-        l = manager.list(range(10))
-
-        p = Process(target=f, args=(d, l))
-        p.start()
-        p.join()
-
-        print(d)
-        print(l)
+# nums = [-3, 2, -3, 4, 2]
+# nums = [1, 2]
+nums = [1, -2, -3]
+print(minStartValue(nums))

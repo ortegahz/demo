@@ -20,6 +20,6 @@ def process_decoder(path_video, buff_len, arr_frames):
         else:
             break
 
-        time.sleep(0.020)
+        time.sleep(0.015)
 
     cap.release()

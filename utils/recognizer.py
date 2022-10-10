@@ -194,8 +194,9 @@ def process_recognizer(buff_len, arr_frames, dict_tracker_res):
 
     model_hpe.load_state_dict(torch.load(config.TEST.MODEL_FILE))
 
-    gpus = [0]
-    model_hpe = torch.nn.DataParallel(model_hpe, device_ids=gpus).cuda()
+    # gpus = [1]
+    # model_hpe = torch.nn.DataParallel(model_hpe, device_ids=gpus).cuda()
+    model_hpe = model_hpe.cuda(device)
     print('[RECOGNIZER] hpe init done ...')
 
     while True:
@@ -275,7 +276,7 @@ def process_recognizer(buff_len, arr_frames, dict_tracker_res):
 
                 input = transform(input)
                 input = input.unsqueeze(0)
-                # input = input.to(device)
+                input = input.to(device)
 
                 model_hpe.eval()
                 output = model_hpe(input)

@@ -61,7 +61,7 @@ if __name__ == '__main__':
     print('tracker init start ...')
     sort_colours = np.random.rand(max_track_num, 3) * 255
 
-    with open('/home/manu/tmp/args.pickle', 'rb') as f:
+    with open('/home/manu/tmp/args_tracker.pickle', 'rb') as f:
         args = pickle.load(f)
 
     tracker = BYTETracker(args, frame_rate=30)

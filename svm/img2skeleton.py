@@ -27,10 +27,11 @@ import transforms as transforms_hpe
 
 def main():
     # general params
-    dir_imgs = '/media/manu/kingstoo/yolov5/custom_behavior/images/train2017'
+    # dir_imgs = '/media/manu/kingstoo/yolov5/custom_behavior/images/train2017'
+    dir_imgs = '/media/manu/kingstoo/yolov5/custom_behavior/images/val2017'
     img_suffix = 'jpg'
-    dir_pos = '/media/manu/kingstoo/svm/pos'
-    dir_neg = '/media/manu/kingstoo/svm/neg'
+    dir_pos = '/media/manu/kingstoo/svm/test/pos'
+    dir_neg = '/media/manu/kingstoo/svm/test/neg'
 
     os.system(f'rm {dir_pos} -rvf')
     os.system(f'mkdir {dir_pos}')

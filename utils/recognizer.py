@@ -37,6 +37,28 @@ sys.path.append('/media/manu/kingstop/workspace/demo/hpe/lib/utils')
 import transforms as transforms_hpe
 
 
+def box2cs(box, aspect_ratio, pixel_std):
+    def xywh2cs(x, y, w, h):
+        center = np.zeros((2), dtype=np.float32)
+        center[0] = x + w * 0.5
+        center[1] = y + h * 0.5
+
+        if w > aspect_ratio * h:
+            h = w * 1.0 / aspect_ratio
+        elif w < aspect_ratio * h:
+            w = h * aspect_ratio
+        scale = np.array(
+            [w * 1.0 / pixel_std, h * 1.0 / pixel_std],
+            dtype=np.float32)
+        if center[0] != -1:
+            scale = scale * 1.25
+
+        return center, scale
+
+    x, y, w, h = box[:4]
+    return xywh2cs(x, y, w, h)
+
+
 def get_max_preds(batch_heatmaps):
     '''
     get predictions from score maps
@@ -92,6 +114,31 @@ def get_final_preds(config, batch_heatmaps, center, scale):
     for i in range(coords.shape[0]):
         preds[i] = transforms_hpe.transform_preds(coords[i], center[i], scale[i],
                                                   [heatmap_width, heatmap_height])
+
+    return preds, maxvals
+
+
+def get_final_preds_local(config, batch_heatmaps):
+    coords, maxvals = get_max_preds(batch_heatmaps)
+
+    heatmap_height = batch_heatmaps.shape[2]
+    heatmap_width = batch_heatmaps.shape[3]
+
+    # post-processing
+    if config.TEST.POST_PROCESS:
+        for n in range(coords.shape[0]):
+            for p in range(coords.shape[1]):
+                hm = batch_heatmaps[n][p]
+                px = int(math.floor(coords[n][p][0] + 0.5))
+                py = int(math.floor(coords[n][p][1] + 0.5))
+                if 1 < px < heatmap_width - 1 and 1 < py < heatmap_height - 1:
+                    diff = np.array([hm[py][px + 1] - hm[py][px - 1],
+                                     hm[py + 1][px] - hm[py - 1][px]])
+                    coords[n][p] += np.sign(diff) * .25
+
+    preds = coords.copy()
+
+    preds = preds[:] * 4
 
     return preds, maxvals
 
@@ -162,27 +209,6 @@ def process_recognizer(buff_len, arr_frames, dict_tracker_res):
 
     colours = np.random.rand(num_joints, 3) * 255
 
-    def _box2cs(box):
-        x, y, w, h = box[:4]
-        return _xywh2cs(x, y, w, h)
-
-    def _xywh2cs(x, y, w, h):
-        center = np.zeros((2), dtype=np.float32)
-        center[0] = x + w * 0.5
-        center[1] = y + h * 0.5
-
-        if w > aspect_ratio * h:
-            h = w * 1.0 / aspect_ratio
-        elif w < aspect_ratio * h:
-            w = h * aspect_ratio
-        scale = np.array(
-            [w * 1.0 / pixel_std, h * 1.0 / pixel_std],
-            dtype=np.float32)
-        if center[0] != -1:
-            scale = scale * 1.25
-
-        return center, scale
-
     # cudnn related setting
     cudnn.benchmark = config.CUDNN.BENCHMARK
     torch.backends.cudnn.deterministic = config.CUDNN.DETERMINISTIC
@@ -235,7 +261,7 @@ def process_recognizer(buff_len, arr_frames, dict_tracker_res):
                 score = sdet[-1]
 
                 kpt_db = []
-                center, scale = _box2cs(box)
+                center, scale = box2cs(box, aspect_ratio, pixel_std)
                 joints_3d = np.zeros((num_joints, 3), dtype=np.float)
                 joints_3d_vis = np.ones(
                     (num_joints, 3), dtype=np.float)

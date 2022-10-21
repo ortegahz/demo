@@ -90,7 +90,9 @@ def overlap_master(bm, bs):
     y1 = max(bm[1], bs[1])
     x2 = min(bm[2], bs[2])
     y2 = min(bm[3], bs[3])
-    so = (y2 - y1) * (x2 - x1)
+    h = (y2 - y1) if (y2 - y1) > 0 else 0
+    w = (x2 - x1) if (x2 - x1) > 0 else 0
+    so = h * w
     score = so / sm
     return score
 

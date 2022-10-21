@@ -4,6 +4,29 @@ import time
 import numpy as np
 
 
+def plot_hpe(frame, preds, maxvals, th_pt=0.1):
+    for i, (pred, maxval) in enumerate(zip(preds[0], maxvals[0])):
+        color = (255, 0, 0)
+        x = pred[0]
+        y = pred[1]
+        if maxval[0] > th_pt:
+            cv2.circle(frame, (int(x), int(y)), 3, color, -1)
+            cv2.putText(frame, f'{maxval[0]:.2f}', (int(x), int(y)), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                        color, 1)
+
+    skeleton = [
+        [16, 14], [14, 12], [17, 15], [15, 13], [12, 13], [6, 12], [7, 13], [6, 7], [6, 8],
+        [7, 9], [8, 10], [9, 11], [2, 3], [1, 2], [1, 3], [2, 4], [3, 5], [4, 6], [5, 7]]
+
+    for pair in skeleton:
+        pt1, maxval1 = preds[0][pair[0] - 1], maxvals[0][pair[0] - 1]
+        x1, y1 = pt1
+        pt2, maxval2 = preds[0][pair[1] - 1], maxvals[0][pair[1] - 1]
+        x2, y2 = pt2
+        if maxval1[0] > th_pt and maxval2[0] > th_pt:
+            cv2.line(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 3)
+
+
 def process_displayer(max_track_num, buff_len, arr_frames, dict_tracker_res, dict_recog_res):
     sort_colours = np.random.rand(max_track_num, 3) * 255
 
@@ -24,28 +47,7 @@ def process_displayer(max_track_num, buff_len, arr_frames, dict_tracker_res, dic
 
                 for hpe_res_s in hpe_res:
                     preds, maxvals = hpe_res_s
-                    th_pt = 0.5
-
-                    for i, (pred, maxval) in enumerate(zip(preds[0], maxvals[0])):
-                        color = (255, 0, 0)
-                        x = pred[0]
-                        y = pred[1]
-                        if maxval[0] > th_pt:
-                            cv2.circle(frame, (int(x), int(y)), 3, color, -1)
-                            cv2.putText(frame, f'{maxval[0]:.2f}', (int(x), int(y)), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                                        color, 1)
-
-                    skeleton = [
-                        [16, 14], [14, 12], [17, 15], [15, 13], [12, 13], [6, 12], [7, 13], [6, 7], [6, 8],
-                        [7, 9], [8, 10], [9, 11], [2, 3], [1, 2], [1, 3], [2, 4], [3, 5], [4, 6], [5, 7]]
-
-                    for pair in skeleton:
-                        pt1, maxval1 = preds[0][pair[0] - 1], maxvals[0][pair[0] - 1]
-                        x1, y1 = pt1
-                        pt2, maxval2 = preds[0][pair[1] - 1], maxvals[0][pair[1] - 1]
-                        x2, y2 = pt2
-                        if maxval1[0] > th_pt and maxval2[0] > th_pt:
-                            cv2.line(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 3)
+                    plot_hpe(frame, preds, maxvals)
 
                 # plot
                 for d in dets:

@@ -16,21 +16,23 @@ def load_feat(path):
     return np.float32(data)
 
 
-path_feat = '/media/manu/kingstoo/svm/test/pos/10687_r1-14_2.txt'
-path_model = '/home/manu/tmp/svm_data.dat'
+if __name__ == '__main__':
 
-path_img = path_feat.replace('.txt', '.jpg')
+    path_feat = '/media/manu/kingstoo/svm/test/pos/10687_r1-14_2.txt'
+    path_model = '/home/manu/tmp/svm_data.dat'
 
-data = load_feat(path_feat)
+    path_img = path_feat.replace('.txt', '.jpg')
 
-svm = cv.ml.SVM_load(path_model)
+    data = load_feat(path_feat)
 
-result = svm.predict(data)[1]
-print(result[0][0])
+    svm = cv.ml.SVM_load(path_model)
 
-name_window = 'result'
-cv.namedWindow(name_window, cv.WINDOW_NORMAL)
-img = cv.imread(path_img)
-cv.putText(img, f'{result[0][0]}', (50, 50), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
-cv.imshow(name_window, img)
-cv.waitKey(3000)
+    result = svm.predict(data)[1]
+    print(result[0][0])
+
+    name_window = 'result'
+    cv.namedWindow(name_window, cv.WINDOW_NORMAL)
+    img = cv.imread(path_img)
+    cv.putText(img, f'{result[0][0]}', (50, 50), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
+    cv.imshow(name_window, img)
+    cv.waitKey(3000)

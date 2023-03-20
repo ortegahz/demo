@@ -25,9 +25,9 @@ from utils.torch_utils import select_device, load_classifier, time_synchronized
 # params
 num_skip = 1  # for speed reason
 name_window = 'frame'
-path_video = '/media/manu/samsung/videos/siamrpn/20200701.mp4'
+# path_video = '/media/manu/samsung/videos/siamrpn/20200701.mp4'
 # path_video = '/media/manu/samsung/videos/at2021/mp4/Video1.mp4'
-# path_video = '/media/manu/samsung/videos/at2021/mp4/Video1年级.mp4'
+path_video = '/media/manu/samsung/videos/at2021/mp4/Video1年级.mp4'
 # path_video = 'rtsp://192.168.3.233:554/live/ch2'
 # path_video = 'rtsp://192.168.3.51:554/ch2'
 

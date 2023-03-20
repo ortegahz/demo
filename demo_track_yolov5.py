@@ -30,8 +30,8 @@ box_act = [0 + 10, 10, 1920 - 10, 500]  # x1, y1, x2, y2
 num_skip = 1  # for speed reason
 name_window = 'frame'
 # path_video = '/media/manu/samsung/videos/siamrpn/20200701.mp4'
-path_video = 'rtsp://192.168.3.25:554/ch0_1'
-# path_video = '/media/manu/samsung/videos/at2021/mp4/Video1.mp4'
+# path_video = 'rtsp://192.168.3.25:554/ch0_1'
+path_video = '/media/manu/samsung/videos/at2021/mp4/Video1.mp4'
 # path_video = '/media/manu/samsung/videos/at2021/mp4/Video1年级.mp4'
 # path_video = 'rtsp://192.168.3.233:554/live/ch2'
 

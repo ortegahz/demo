@@ -27,11 +27,12 @@ num_skip = 1  # for speed reason
 name_window = 'frame'
 # path_video = '/media/manu/samsung/videos/siamrpn/20200701.mp4'
 # path_video = '/media/manu/samsung/videos/at2021/mp4/Video1.mp4'
-path_video = '/media/manu/samsung/videos/at2021/mp4/Video1年级.mp4'
+# path_video = '/media/manu/samsung/videos/at2021/mp4/Video1年级.mp4'
 # path_video = 'rtsp://192.168.3.233:554/live/ch2'
 # path_video = 'rtsp://192.168.3.51:554/ch2'
+path_video = 'rtsp://192.168.3.122:554/ch1'
 
-weights = ['/home/manu/tmp/yolov5s_e300_ceil_relua_rfocus_synbn_weightse300/weights/best.pt', ]
+weights = ['/home/manu/tmp/yolov5s_e300_ceil_relua_rfocus_synbn_weights-e300_r1-11/weights/best.pt', ]
 device = torch.device('cuda:0')
 conf_thres = 0.5
 iou_thres = 0.5

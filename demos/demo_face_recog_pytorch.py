@@ -22,12 +22,12 @@ import face_preprocess
 
 def main():
     # params
-    num_skip = 10  # for speed reason
     name_window = 'frame'
     # path_video = 'rtsp://192.168.3.34:554/live/ch4'
     # path_video = 'rtsp://192.168.3.233:554/live/ch4'
     # path_video = '/media/manu/samsung/videos/at2021/mp4/Video1.mp4'
-    path_video = '/home/manu/tmp/汇201/汇201.mp4'
+    path_video = '/media/manu/kingstoo/tmp/vlc-record-2023-05-15-10h22m56s-rtsp___10.1.25.105_554_ch4-.mp4'
+    out_dir_reset = True
 
     model_face_detect_path = '/home/manu/tmp/mobilenet_v1_0_25/retina'
     warmup_img_path = '/media/manu/samsung/pics/material3000_1920x1080.jpg'  # image size should be same as actual input
@@ -37,7 +37,7 @@ def main():
     flip = False
 
     face_recog_debug_dir = '/home/manu/tmp/demo_snapshot/'
-    face_dataset_dir = '/media/manu/samsung/pics/face_db_lz'
+    face_dataset_dir = '/media/manu/samsung/pics/face_db'
     network_name = 'r50'
     path_weight = '/home/manu/tmp/wf42m_pfc02_8gpus_r50_bs1k/model.pt'
     local_rank = 'cuda:0'
@@ -56,12 +56,13 @@ def main():
     face_recog_net.load_state_dict(torch.load(path_weight, map_location=torch.device(local_rank)))
     face_recog_net.eval()
     out_dir = face_recog_debug_dir
-    os.system('rm %s -rvf' % out_dir)
+    if out_dir_reset:
+        os.system('rm %s -rvf' % out_dir)
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
-    for path_img in glob.glob(os.path.join(face_dataset_dir, '*.jpg')):
+    for path_img in glob.glob(os.path.join(face_dataset_dir, '*.bmp')):
         _, img_name = os.path.split(path_img)
-        img_name = img_name.replace('.jpg', '')
+        img_name = img_name.replace('.bmp', '')
         stu_id, stu_name = img_name.split('_')
         img = cv2.imread(path_img)
         h, w, c = img.shape
@@ -103,7 +104,7 @@ def main():
     print('warm up done')
 
     q_decoder = Queue()
-    p_decoder = Process(target=process.process_decoder, args=(q_decoder, path_video, num_skip), daemon=True)
+    p_decoder = Process(target=process.process_decoder, args=(q_decoder, path_video), daemon=True)
     p_decoder.start()
 
     cv2.namedWindow(name_window, cv2.WINDOW_NORMAL)
@@ -130,6 +131,7 @@ def main():
                 points = points[0, :].reshape((2, 5)).T
                 img_aligned = face_preprocess.preprocess(frame_org, bbox, points, image_size='112,112')
                 img_aligned_write = img_aligned
+                cv2.imwrite('/home/manu/tmp/snap.jpg', img_aligned_write)
                 img_aligned = cv2.cvtColor(img_aligned, cv2.COLOR_BGR2RGB)
                 img_aligned = np.transpose(img_aligned, (2, 0, 1))
                 img_aligned = torch.from_numpy(img_aligned).unsqueeze(0).float()

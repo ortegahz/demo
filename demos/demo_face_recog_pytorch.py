@@ -26,7 +26,7 @@ def main():
     # path_video = 'rtsp://192.168.3.34:554/live/ch4'
     # path_video = 'rtsp://192.168.3.233:554/live/ch4'
     # path_video = '/media/manu/samsung/videos/at2021/mp4/Video1.mp4'
-    path_video = '/media/manu/kingstoo/tmp/vlc-record-2023-05-15-10h22m56s-rtsp___10.1.25.105_554_ch4-.mp4'
+    path_video = '/media/manu/kingstoo/tmp/vlc-record-2023-05-15-10h01m59s-rtsp___10.1.25.105_554_ch4-.mp4'
     out_dir_reset = True
 
     model_face_detect_path = '/home/manu/tmp/mobilenet_v1_0_25/retina'
@@ -39,11 +39,11 @@ def main():
     face_recog_debug_dir = '/home/manu/tmp/demo_snapshot/'
     face_dataset_dir = '/media/manu/samsung/pics/face_db'
     network_name = 'r50'
-    path_weight = '/home/manu/tmp/wf42m_pfc02_8gpus_r50_bs1k/model.pt'
+    path_weight = '/home/manu/tmp/pcv1_r50/model.pt'
     local_rank = 'cuda:0'
     epsilon = 1e-10
     face_recog_sim_th = 0.35
-    # face_recog_dist_th = 2.0
+    db_suffix = 'bmp'
 
     print('face detect init start ...')
     detector = RetinaFace(model_face_detect_path, 0, gpuid, 'net3')
@@ -60,9 +60,9 @@ def main():
         os.system('rm %s -rvf' % out_dir)
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
-    for path_img in glob.glob(os.path.join(face_dataset_dir, '*.bmp')):
+    for path_img in glob.glob(os.path.join(face_dataset_dir, f'*.{db_suffix}')):
         _, img_name = os.path.split(path_img)
-        img_name = img_name.replace('.bmp', '')
+        img_name = img_name.replace(f'.{db_suffix}', '')
         stu_id, stu_name = img_name.split('_')
         img = cv2.imread(path_img)
         h, w, c = img.shape
@@ -109,7 +109,6 @@ def main():
 
     cv2.namedWindow(name_window, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(name_window, 960, 540)
-    face_recog_aligned_save_idx = 0
     while True:
         item_frame = q_decoder.get()
         frame_org = item_frame[0]
@@ -131,7 +130,7 @@ def main():
                 points = points[0, :].reshape((2, 5)).T
                 img_aligned = face_preprocess.preprocess(frame_org, bbox, points, image_size='112,112')
                 img_aligned_write = img_aligned
-                cv2.imwrite('/home/manu/tmp/snap.jpg', img_aligned_write)
+                # cv2.imwrite('/home/manu/tmp/snap.jpg', img_aligned_write)
                 img_aligned = cv2.cvtColor(img_aligned, cv2.COLOR_BGR2RGB)
                 img_aligned = np.transpose(img_aligned, (2, 0, 1))
                 img_aligned = torch.from_numpy(img_aligned).unsqueeze(0).float()
@@ -144,33 +143,24 @@ def main():
                 # img_aligned = cv2.cvtColor(img_aligned, cv2.COLOR_BGR2RGB)
                 # img_aligned = np.transpose(img_aligned, (2, 0, 1))
                 # feat = model.get_feature(img_aligned)
-                [sim_highest, stu_name_highest, isfind] = [0, '', False]
+                [sim_highest, stu_name_highest, idx_db_highest] = [-1., '', -1]
                 for idx_db, (stu_id, stu_name, feat_ref, rhs) in enumerate(face_recog_dataset):
                     sim = np.dot(feat_ref, feat.T)  # sim is wired
                     if sim > sim_highest:
                         sim_highest = sim
                         stu_name_highest = stu_name
-                    # dist = np.sum(np.square(feat_ref - feat))
-                    # if dist < face_recog_dist_th:
-                    if sim > face_recog_sim_th:
-                        # info = stu_name + ' with dist ' + '%f' % dist
-                        info = stu_name + ' ' + '%f' % sim
-                        img = cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
-                        # save aligned image for debug reason
-                        out_dir = face_recog_debug_dir
-                        # out_path = os.path.join(out_dir,
-                        #                         '%s_%d_%f' % (stu_name, face_recog_aligned_save_idx, dist) + '.jpg')
-                        # out_path = os.path.join(out_dir,
-                        #                         '%s_%d_%f' % (stu_name, face_recog_aligned_save_idx, sim) + '.jpg')
-                        if sim > rhs:
-                            out_path = os.path.join(out_dir, '%s' % stu_name + '.jpg')
-                            cv2.imwrite(out_path, img_aligned_write)
-                            face_recog_dataset[idx_db][3] = sim
-                        face_recog_aligned_save_idx += 1
-                        isfind = True
-                if not isfind:
+                        idx_db_highest = idx_db
+                if sim_highest > face_recog_sim_th:
                     info = stu_name_highest + ' ' + '%f' % sim_highest
-                    img = cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
+                    cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
+                    out_dir = face_recog_debug_dir
+                    if sim_highest > face_recog_dataset[idx_db_highest][3]:
+                        out_path = os.path.join(out_dir, '%s' % stu_name_highest + '.jpg')
+                        cv2.imwrite(out_path, img_aligned_write)
+                        face_recog_dataset[idx_db_highest][3] = sim_highest
+                else:
+                    info = stu_name_highest + ' ' + '%f' % sim_highest
+                    cv2.putText(frame, info, (box[0], box[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
 
             # plot
             for i in range(faces.shape[0]):

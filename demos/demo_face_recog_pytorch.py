@@ -26,8 +26,8 @@ def main():
     # path_video = 'rtsp://192.168.3.34:554/live/ch4'
     # path_video = 'rtsp://192.168.3.233:554/live/ch4'
     # path_video = '/media/manu/samsung/videos/at2021/mp4/Video1.mp4'
-    path_video = '/media/manu/kingstoo/tmp/vlc-record-2023-05-15-10h01m59s-rtsp___10.1.25.105_554_ch4-.mp4'
-    out_dir_reset = True
+    path_video = '/media/manu/kingstoo/tmp/B201-2.mp4'
+    out_dir_reset = False
 
     model_face_detect_path = '/home/manu/tmp/mobilenet_v1_0_25/retina'
     warmup_img_path = '/media/manu/samsung/pics/material3000_1920x1080.jpg'  # image size should be same as actual input
@@ -37,13 +37,13 @@ def main():
     flip = False
 
     face_recog_debug_dir = '/home/manu/tmp/demo_snapshot/'
-    face_dataset_dir = '/media/manu/samsung/pics/face_db'
-    network_name = 'r50'
-    path_weight = '/home/manu/tmp/pcv1_r50/model.pt'
+    face_dataset_dir = '/media/manu/kingstoo/tmp/201-照片'
+    network_name = 'r100'
+    path_weight = '/home/manu/tmp/wf42m_pfc02_r100_8gpus_bs512/model.pt'
     local_rank = 'cuda:0'
     epsilon = 1e-10
     face_recog_sim_th = 0.35
-    db_suffix = 'bmp'
+    db_suffix = 'JPG'
 
     print('face detect init start ...')
     detector = RetinaFace(model_face_detect_path, 0, gpuid, 'net3')
@@ -63,7 +63,8 @@ def main():
     for path_img in glob.glob(os.path.join(face_dataset_dir, f'*.{db_suffix}')):
         _, img_name = os.path.split(path_img)
         img_name = img_name.replace(f'.{db_suffix}', '')
-        stu_id, stu_name = img_name.split('_')
+        # stu_id, stu_name = img_name.split('_')
+        stu_id, stu_name = img_name, img_name
         img = cv2.imread(path_img)
         h, w, c = img.shape
         max_l = max(h, w)

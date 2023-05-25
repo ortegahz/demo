@@ -13,6 +13,8 @@ def main():
     # params
     rtsp_addrs = [
         'rtsp://192.168.3.91:554/ch0_1',
+        'rtsp://192.168.3.91:554/ch0_1',
+        'rtsp://192.168.3.91:554/ch0_1',
     ]
     dir_save = '/home/manu/tmp/snapshots'
     b_del_dir_save = True

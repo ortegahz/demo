@@ -144,7 +144,7 @@ def parse_ars():
     parser.add_argument('--save_dir_root', default='/media/manu/kingstoo/tmp/pics_phone_sample', type=str)
     parser.add_argument('--th_pick_ub', default=0.6, type=float)
     parser.add_argument('--sample_interval_s', default=60 * 20, type=float)
-    parser.add_argument('--reset', default=True, type=bool)
+    parser.add_argument('--reset', default=False, type=bool)
     return parser.parse_args()
 
 

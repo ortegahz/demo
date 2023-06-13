@@ -11,7 +11,7 @@ from utils.decoder import process_decoder
 from utils.logging import set_logging
 from utils.ious import iogs_calc
 
-sys.path.append('/media/manu/kingstop/workspace/YOLOv6')
+sys.path.append('/home/manu/workspace/YOLOv6')
 from yolov6.core.inferer import Inferer
 
 
@@ -79,16 +79,16 @@ def parse_ars():
     # parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.164.49.mp4', type=str)
     # parser.add_argument('--path_in', default='rtsp://192.168.1.40:554/live/av0', type=str)
     parser.add_argument('--path_in', default='rtsp://192.168.3.200:554/ch0_1', type=str)
-    parser.add_argument('--yaml_phone', default='/media/manu/kingstop/workspace/YOLOv6/data/phone.yaml', type=str)
+    parser.add_argument('--yaml_phone', default='/home/manu/workspace/YOLOv6/data/phone.yaml', type=str)
     parser.add_argument('--weights_phone', default='/home/manu/tmp/exp12/weights/best_ckpt.pt', type=str)
-    parser.add_argument('--yaml_play', default='/media/manu/kingstop/workspace/YOLOv6/data/play.yaml', type=str)
+    parser.add_argument('--yaml_play', default='/home/manu/workspace/YOLOv6/data/play.yaml', type=str)
     parser.add_argument('--weights_play', default='/home/manu/tmp/exp16/weights/best_ckpt.pt', type=str)
     parser.add_argument('--img_size', nargs='+', type=int, default=[1280, 1280])
     parser.add_argument('--hide_labels', default=True, action='store_true', help='hide labels.')
     parser.add_argument('--hide_conf', default=False, action='store_true', help='hide confidences.')
     parser.add_argument('--alpha', default=0.5, type=float)
     parser.add_argument('--th_esb', default=0.4, type=float)
-    parser.add_argument('--ext_info', default=False, action='store_true')
+    parser.add_argument('--ext_info', default=True, action='store_true')
     return parser.parse_args()
 
 

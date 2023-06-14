@@ -33,7 +33,7 @@ def run(args):
         det_phone = inferer_phone.infer_custom(frame, 0.4, 0.45, None, False, 1000)
         det_play = inferer_play.infer_custom(frame, 0.4, 0.45, None, False, 1000)
 
-        bboxes_phone, bboxes_play = det_phone[:, :4].cpu().numpy(), det_play[:, :4].cpu().numpy()
+        bboxes_phone, bboxes_play = det_phone[:, :4].cpu().detach().numpy(), det_play[:, :4].cpu().detach().numpy()
         iogs = iogs_calc(bboxes_phone, bboxes_play)
 
         if args.ext_info:
@@ -75,14 +75,16 @@ def run(args):
 def parse_ars():
     parser = argparse.ArgumentParser()
     parser.add_argument('--path_in_mp4', default='/media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4', type=str)  # TODO
-    # parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.166.45.mp4', type=str)
+    parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.166.45.mp4', type=str)
     # parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.164.49.mp4', type=str)
     # parser.add_argument('--path_in', default='rtsp://192.168.1.40:554/live/av0', type=str)
-    parser.add_argument('--path_in', default='rtsp://192.168.3.200:554/ch0_1', type=str)
+    # parser.add_argument('--path_in', default='rtsp://192.168.3.200:554/ch0_1', type=str)
     parser.add_argument('--yaml_phone', default='/home/manu/workspace/YOLOv6/data/phone.yaml', type=str)
-    parser.add_argument('--weights_phone', default='/home/manu/tmp/exp12/weights/best_ckpt.pt', type=str)
+    # parser.add_argument('--weights_phone', default='/home/manu/tmp/exp12/weights/best_ckpt.pt', type=str)
+    parser.add_argument('--weights_phone', default='/home/manu/tmp/aux.pt', type=str)
     parser.add_argument('--yaml_play', default='/home/manu/workspace/YOLOv6/data/play.yaml', type=str)
-    parser.add_argument('--weights_play', default='/home/manu/tmp/exp16/weights/best_ckpt.pt', type=str)
+    # parser.add_argument('--weights_play', default='/home/manu/tmp/exp16/weights/best_ckpt.pt', type=str)
+    parser.add_argument('--weights_play', default='/home/manu/tmp/main.pt', type=str)
     parser.add_argument('--img_size', nargs='+', type=int, default=[1280, 1280])
     parser.add_argument('--hide_labels', default=True, action='store_true', help='hide labels.')
     parser.add_argument('--hide_conf', default=False, action='store_true', help='hide confidences.')

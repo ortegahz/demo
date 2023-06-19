@@ -18,6 +18,7 @@ from yolov6.core.inferer import Inferer
 def run(args):
     inferer_phone = Inferer(args.path_in_mp4, False, 0, args.weights_phone, 0, args.yaml_phone, args.img_size, False)
     inferer_play = Inferer(args.path_in_mp4, False, 0, args.weights_play, 0, args.yaml_play, args.img_size, False)
+    inferer_people = Inferer(args.path_in_mp4, False, 0, args.weights_people, 0, args.yaml_people, args.img_size, False)
 
     q_decoder = Queue()
     p_decoder = Process(target=process_decoder, args=(args.path_in, q_decoder), daemon=True)
@@ -32,8 +33,12 @@ def run(args):
 
         det_phone = inferer_phone.infer_custom(frame, 0.4, 0.45, None, False, 1000)
         det_play = inferer_play.infer_custom(frame, 0.4, 0.45, None, False, 1000)
+        det_people = inferer_people.infer_custom(frame, 0.4, 0.45, None, False, 1000)
 
-        bboxes_phone, bboxes_play = det_phone[:, :4].cpu().detach().numpy(), det_play[:, :4].cpu().detach().numpy()
+        bboxes_phone, bboxes_play, bboxes_people =\
+            det_phone[:, :4].cpu().detach().numpy(),\
+            det_play[:, :4].cpu().detach().numpy(),\
+            det_people[:, :4].cpu().detach().numpy()
         iogs = iogs_calc(bboxes_phone, bboxes_play)
 
         if args.ext_info:
@@ -49,6 +54,13 @@ def run(args):
 
                     inferer_play.plot_box_and_label(frame, max(round(sum(frame.shape) / 2 * 0.003), 2), xyxy, label,
                                                     color=(255, 255, 0))
+
+            if len(det_people):
+                for *xyxy, conf, cls in reversed(det_people):
+                    label = f'{conf:.2f}'
+
+                    inferer_play.plot_box_and_label(frame, max(round(sum(frame.shape) / 2 * 0.003), 2), xyxy, label,
+                                                    color=(255, 0, 0))
 
         if len(det_play):
             for idx, (*xyxy, conf_play, _) in enumerate(det_play):
@@ -80,15 +92,17 @@ def parse_ars():
     # parser.add_argument('--path_in', default='rtsp://192.168.1.40:554/live/av0', type=str)
     # parser.add_argument('--path_in', default='rtsp://192.168.3.200:554/ch0_1', type=str)
     parser.add_argument('--yaml_phone', default='/home/manu/workspace/YOLOv6/data/phone.yaml', type=str)
-    # parser.add_argument('--weights_phone', default='/home/manu/tmp/exp12/weights/best_ckpt.pt', type=str)
-    parser.add_argument('--weights_phone', default='/home/manu/tmp/aux.pt', type=str)
+    parser.add_argument('--weights_phone', default='/home/manu/tmp/exp12/weights/best_ckpt.pt', type=str)
+    # parser.add_argument('--weights_phone', default='/home/manu/tmp/aux.pt', type=str)
     parser.add_argument('--yaml_play', default='/home/manu/workspace/YOLOv6/data/play.yaml', type=str)
-    # parser.add_argument('--weights_play', default='/home/manu/tmp/exp16/weights/best_ckpt.pt', type=str)
-    parser.add_argument('--weights_play', default='/home/manu/tmp/main.pt', type=str)
+    parser.add_argument('--weights_play', default='/home/manu/tmp/exp16/weights/best_ckpt.pt', type=str)
+    # parser.add_argument('--weights_play', default='/home/manu/tmp/main.pt', type=str)
+    parser.add_argument('--yaml_people', default='/media/manu/kingstop/workspace/YOLOv6/data/people.yaml', type=str)
+    parser.add_argument('--weights_people', default='/home/manu/tmp/exp2/weights/best_ckpt.pt', type=str)
     parser.add_argument('--img_size', nargs='+', type=int, default=[1280, 1280])
     parser.add_argument('--hide_labels', default=True, action='store_true', help='hide labels.')
     parser.add_argument('--hide_conf', default=False, action='store_true', help='hide confidences.')
-    parser.add_argument('--alpha', default=0.5, type=float)
+    parser.add_argument('--alpha', default=0.4, type=float)
     parser.add_argument('--th_esb', default=0.4, type=float)
     parser.add_argument('--ext_info', default=True, action='store_true')
     return parser.parse_args()

@@ -20,7 +20,7 @@ def process_decoder(path_video, queue, buff_len=5):
         idx_frame += 1
         if queue.qsize() > buff_len:
             queue.get()
-            logging.info('dropping frame !!!')
+            # logging.info('dropping frame !!!')
         queue.put([idx_frame, frame, fc])
 
         while time.time() - t_last < 1. / fps:

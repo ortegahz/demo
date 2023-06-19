@@ -2,6 +2,7 @@ import argparse
 import logging
 import cv2
 import sys
+import os
 
 import numpy as np
 
@@ -11,6 +12,11 @@ from utils.decoder import process_decoder
 from utils.logging import set_logging
 from utils.ious import iogs_calc
 
+os.environ['RSN_HOME'] = '/media/manu/kingstop/workspace/RSN'
+sys.path.append(os.environ['RSN_HOME'])
+sys.path.append(os.path.join(os.environ['RSN_HOME'], 'exps', 'RSN18.coco'))
+from infer import Inferer as RSNInferer
+
 sys.path.append('/home/manu/workspace/YOLOv6')
 from yolov6.core.inferer import Inferer
 
@@ -19,6 +25,7 @@ def run(args):
     inferer_phone = Inferer(args.path_in_mp4, False, 0, args.weights_phone, 0, args.yaml_phone, args.img_size, False)
     inferer_play = Inferer(args.path_in_mp4, False, 0, args.weights_play, 0, args.yaml_play, args.img_size, False)
     inferer_people = Inferer(args.path_in_mp4, False, 0, args.weights_people, 0, args.yaml_people, args.img_size, False)
+    inferer_kps = RSNInferer(args.weights_kps)
 
     q_decoder = Queue()
     p_decoder = Process(target=process_decoder, args=(args.path_in, q_decoder), daemon=True)
@@ -35,11 +42,18 @@ def run(args):
         det_play = inferer_play.infer_custom(frame, 0.4, 0.45, None, False, 1000)
         det_people = inferer_people.infer_custom(frame, 0.4, 0.45, None, False, 1000)
 
-        bboxes_phone, bboxes_play, bboxes_people =\
-            det_phone[:, :4].cpu().detach().numpy(),\
-            det_play[:, :4].cpu().detach().numpy(),\
+        bboxes_phone, bboxes_play, bboxes_people = \
+            det_phone[:, :4].cpu().detach().numpy(), \
+            det_play[:, :4].cpu().detach().numpy(), \
             det_people[:, :4].cpu().detach().numpy()
+
         iogs = iogs_calc(bboxes_phone, bboxes_play)
+
+        results_kps = None
+        if len(det_people):
+            idets_kps = det_people[:, :5].cpu().detach().numpy()
+            idets_kps[:, 2:4] = idets_kps[:, 2:4] - idets_kps[:, :2]  # xyxy to xywh
+            results_kps = inferer_kps.inference(frame, idets_kps)
 
         if args.ext_info:
             if len(det_phone):
@@ -55,12 +69,14 @@ def run(args):
                     inferer_play.plot_box_and_label(frame, max(round(sum(frame.shape) / 2 * 0.003), 2), xyxy, label,
                                                     color=(255, 255, 0))
 
-            if len(det_people):
-                for *xyxy, conf, cls in reversed(det_people):
-                    label = f'{conf:.2f}'
-
-                    inferer_play.plot_box_and_label(frame, max(round(sum(frame.shape) / 2 * 0.003), 2), xyxy, label,
-                                                    color=(255, 0, 0))
+            # if len(det_people):
+            #     for *xyxy, conf, cls in reversed(det_people):
+            #         label = f'{conf:.2f}'
+            #
+            #         inferer_play.plot_box_and_label(frame, max(round(sum(frame.shape) / 2 * 0.003), 2), xyxy, label,
+            #                                         color=(255, 0, 0))
+            if len(results_kps):
+                frame = inferer_kps.draw_results(frame, results_kps)
 
         if len(det_play):
             for idx, (*xyxy, conf_play, _) in enumerate(det_play):
@@ -99,6 +115,7 @@ def parse_ars():
     # parser.add_argument('--weights_play', default='/home/manu/tmp/main.pt', type=str)
     parser.add_argument('--yaml_people', default='/media/manu/kingstop/workspace/YOLOv6/data/people.yaml', type=str)
     parser.add_argument('--weights_people', default='/home/manu/tmp/exp2/weights/best_ckpt.pt', type=str)
+    parser.add_argument('--weights_kps', default='/home/manu/tmp/iter-96000.pth', type=str)
     parser.add_argument('--img_size', nargs='+', type=int, default=[1280, 1280])
     parser.add_argument('--hide_labels', default=True, action='store_true', help='hide labels.')
     parser.add_argument('--hide_conf', default=False, action='store_true', help='hide confidences.')

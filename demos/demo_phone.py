@@ -1,16 +1,16 @@
 import argparse
 import logging
-import cv2
-import sys
 import os
-
-import numpy as np
-
+import sys
 from multiprocessing import Process, Queue
 
+import cv2
+import numpy as np
+from sklearn import preprocessing
+
 from utils.decoder import process_decoder
-from utils.logging import set_logging
 from utils.ious import iogs_calc
+from utils.logging import set_logging
 
 os.environ['RSN_HOME'] = '/media/manu/kingstop/workspace/RSN'
 sys.path.append(os.environ['RSN_HOME'])
@@ -39,7 +39,7 @@ def run(args):
         idx_frame, frame, fc = item_frame
 
         det_phone = inferer_phone.infer_custom(frame, 0.4, 0.45, None, False, 1000)
-        det_play = inferer_play.infer_custom(frame, 0.4, 0.45, None, False, 1000)
+        det_play = inferer_play.infer_custom(frame, 0.2, 0.45, None, False, 1000)
         det_people = inferer_people.infer_custom(frame, 0.4, 0.45, None, False, 1000)
 
         bboxes_phone, bboxes_play, bboxes_people = \
@@ -47,7 +47,9 @@ def run(args):
             det_play[:, :4].cpu().detach().numpy(), \
             det_people[:, :4].cpu().detach().numpy()
 
-        iogs = iogs_calc(bboxes_phone, bboxes_play)
+        iogs_phone = iogs_calc(bboxes_phone, bboxes_play)
+        bboxes_people[:, 3] -= (bboxes_people[:, 3] - bboxes_people[:, 1]) / 2
+        iogs_pepole = iogs_calc(bboxes_play, bboxes_people)
 
         results_kps = None
         if len(det_people):
@@ -65,28 +67,83 @@ def run(args):
             if len(det_play):
                 for *xyxy, conf, cls in reversed(det_play):
                     label = f'{conf:.2f}'
-
                     inferer_play.plot_box_and_label(frame, max(round(sum(frame.shape) / 2 * 0.003), 2), xyxy, label,
-                                                    color=(255, 255, 0))
+                                                    color=(0, 255, 255))
 
             # if len(det_people):
             #     for *xyxy, conf, cls in reversed(det_people):
             #         label = f'{conf:.2f}'
-            #
             #         inferer_play.plot_box_and_label(frame, max(round(sum(frame.shape) / 2 * 0.003), 2), xyxy, label,
             #                                         color=(255, 0, 0))
-            if len(results_kps):
+
+            if results_kps is not None:
                 frame = inferer_kps.draw_results(frame, results_kps)
 
         if len(det_play):
             for idx, (*xyxy, conf_play, _) in enumerate(det_play):
-                max_match_iog = max(iogs[:, idx]) if iogs.shape[0] > 0 else 0.
-                conf_phone = det_phone[np.argmax(iogs[:, idx]), -2] if iogs.shape[0] > 0 and max_match_iog > 0.9 else 0.
-                conf = args.alpha * conf_play + (1 - args.alpha) * conf_phone
-                if conf > args.th_esb:
+                max_match_iog_people = max(iogs_pepole[idx, :]) if iogs_pepole.shape[1] > 0 else 0.
+                max_match_iog_people_th = 0.6
+                det_people_pick = det_people[np.argmax(iogs_pepole[idx, :])] if iogs_pepole.shape[1] > 0 and max_match_iog_people > max_match_iog_people_th else None
+                det_people_pick_idx = np.argmax(iogs_pepole[idx, :]) if iogs_pepole.shape[1] > 0 and max_match_iog_people > max_match_iog_people_th else -1
+                joints = np.ones((17, 3)) * 99999  # TODO
+                dir_r_norm = np.ones((1, 2)) * 99999  # TODO
+                dir_l_norm = np.ones((1, 2)) * 99999  # TODO
+                sz_pick = 1.
+                conf_kps = 0.
+                if det_people_pick is not None:
+                    sz_pick = (det_people_pick[2] - det_people_pick[0]) * (det_people_pick[3] - det_people_pick[1])
+                    *xyxy_p, conf_p, _ = det_people_pick
+                    label_p = f'{conf_p:.2f}'
+                    inferer_play.plot_box_and_label(frame, max(round(sum(frame.shape) / 2 * 0.003), 2), xyxy_p, label_p,
+                                                    color=(0, 255, 255))
+                    results_kps_pick = results_kps[det_people_pick_idx]
+                    joints = np.array(results_kps_pick['keypoints']).reshape((17, 3))
+                    for i in range(17):
+                        if i != 9 and i != 10:
+                            continue
+                        color = (0, 255, 255)
+                        if joints[i, 0] > 0 and joints[i, 1] > 0:
+                            cv2.circle(frame, tuple(joints[i, :2].astype(int)), 2, color, 2)
+                    dir_r = joints[10, :2] - joints[8, :2]
+                    dir_r_norm = preprocessing.normalize(dir_r[None, :])
+                    dir_l = joints[9, :2] - joints[7, :2]
+                    dir_l_norm = preprocessing.normalize(dir_l[None, :])
+                    cv2.line(frame, tuple(joints[10, :2].astype(int)), tuple(joints[8, :2].astype(int)), (0, 255, 255), 2)
+                    cv2.line(frame, tuple(joints[9, :2].astype(int)), tuple(joints[7, :2].astype(int)), (0, 255, 255), 2)
+
+                max_match_iog = max(iogs_phone[:, idx]) if iogs_phone.shape[0] > 0 else 0.
+                conf_phone = det_phone[np.argmax(iogs_phone[:, idx]), -2] if iogs_phone.shape[0] > 0 and max_match_iog > 0.9 else 0.
+                det_phone_pick = det_phone[np.argmax(iogs_phone[:, idx])] if iogs_phone.shape[0] > 0 and max_match_iog > 0.9 else None
+                if det_phone_pick is not None:
+                    rescale = 1000.
+                    cxcy_phone = (int((det_phone_pick[0] + det_phone_pick[2]) / 2.),
+                                  int((det_phone_pick[1] + det_phone_pick[3]) / 2.))
+                    cv2.circle(frame, cxcy_phone, 2, (0, 255, 0), 2)
+                    dir_r_p = cxcy_phone - joints[10, :2]
+                    dir_r_p_norm = preprocessing.normalize(dir_r_p[None, :])
+                    cos_r = np.dot(dir_r_p_norm, dir_r_norm.T)[0][0]
+                    w_r = 2 - cos_r
+                    dist_r = np.linalg.norm(dir_r_p) * w_r / sz_pick * rescale
+                    dir_l_p = cxcy_phone - joints[9, :2]
+                    dir_l_p_norm = preprocessing.normalize(dir_l_p[None, :])
+                    cos_l = np.dot(dir_l_p_norm, dir_l_norm.T)[0][0]
+                    w_l = 2 - cos_l
+                    dist_l = np.linalg.norm(dir_l_p) * w_l / sz_pick * rescale
+                    # conf_kps = (max(1 / dist_l * joints[9, 2], 1 / dist_r * joints[10, 2]) + det_phone_pick[-2]) / 2.
+                    conf_kps = (1 / dist_l * joints[9, 2] + 1 / dist_r * joints[10, 2] + det_phone_pick[-2]) / 3.
+                    if joints[10, 2] < 99999 and joints[9, 2] < 99999:
+                        color = (0, 0, 128)
+                        cv2.line(frame, tuple(joints[10, :2].astype(int)), cxcy_phone, color, 2)
+                        cv2.line(frame, tuple(joints[9, :2].astype(int)), cxcy_phone, color, 2)
+                        cv2.putText(frame, f'{dist_r:.2f}', tuple(joints[10, :2].astype(int)), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 255), 2)
+                        cv2.putText(frame, f'{dist_l:.2f}', tuple(joints[9, :2].astype(int)), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 0), 2)
+
+                conf = args.alpha * conf_play + (1 - args.alpha) * conf_kps
+                if conf > 0.8:
                     p1, p2 = (int(xyxy[0]), int(xyxy[1])), (int(xyxy[2]), int(xyxy[3]))
                     cv2.rectangle(frame, p1, p2, (0, 0, 255), thickness=5, lineType=cv2.LINE_AA)
                     cv2.putText(frame, f'{conf:.2f}', (p1[0], p1[1] - 2), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
+                    # cv2.putText(frame, f'{conf_kps:.2f}', (p1[0], p1[1] - 2), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
 
         cv2.putText(frame, f'{idx_frame} / {fc}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
 
@@ -103,7 +160,8 @@ def run(args):
 def parse_ars():
     parser = argparse.ArgumentParser()
     parser.add_argument('--path_in_mp4', default='/media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4', type=str)  # TODO
-    parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.166.45.mp4', type=str)
+    parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4', type=str)
+    # parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.166.45.mp4', type=str)
     # parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.164.49.mp4', type=str)
     # parser.add_argument('--path_in', default='rtsp://192.168.1.40:554/live/av0', type=str)
     # parser.add_argument('--path_in', default='rtsp://192.168.3.200:554/ch0_1', type=str)

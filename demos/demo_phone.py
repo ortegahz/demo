@@ -77,11 +77,8 @@ def run(args):
             #         inferer_play.plot_box_and_label(frame, max(round(sum(frame.shape) / 2 * 0.003), 2), xyxy, label,
             #                                         color=(255, 0, 0))
 
-            if results_kps is not None:
-                frame = inferer_kps.draw_results(frame, results_kps)
-
-        if len(det_play) < 1:  # player detection major
-            continue
+            # if results_kps is not None:
+            #     frame = inferer_kps.draw_results(frame, results_kps)
 
         for idx, (*xyxy, conf_play, _) in enumerate(det_play):
             joints = np.ones((17, 3)) * sys.maxsize
@@ -173,11 +170,11 @@ def run(args):
 def parse_ars():
     parser = argparse.ArgumentParser()
     parser.add_argument('--path_in_mp4', default='/media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4', type=str)  # TODO
-    parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4', type=str)
+    # parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4', type=str)
     # parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.166.45.mp4', type=str)
     # parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.164.49.mp4', type=str)
     # parser.add_argument('--path_in', default='rtsp://192.168.1.40:554/live/av0', type=str)
-    # parser.add_argument('--path_in', default='rtsp://192.168.3.200:554/ch0_1', type=str)
+    parser.add_argument('--path_in', default='rtsp://192.168.3.200:554/ch0_1', type=str)
     parser.add_argument('--yaml_phone', default='/home/manu/workspace/YOLOv6/data/phone.yaml', type=str)
     parser.add_argument('--weights_phone', default='/home/manu/tmp/exp12/weights/best_ckpt.pt', type=str)
     # parser.add_argument('--weights_phone', default='/home/manu/tmp/aux.pt', type=str)

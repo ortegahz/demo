@@ -101,7 +101,7 @@ def run(args):
                 sz_pick = torch.sqrt(
                     (det_people_pick[2] - det_people_pick[0]) * (det_people_pick[3] - det_people_pick[1]))
                 *xyxy_p, conf_p, _ = det_people_pick
-                label_p = f'{conf_p:.2f}'
+                label_p = f'{conf_play:.2f}'
                 inferer_play.plot_box_and_label(frame, max(round(sum(frame.shape) / 2 * 0.003), 2), xyxy_p, label_p,
                                                 color=(0, 255, 255))
                 results_kps_pick = results_kps[det_people_pick_idx]

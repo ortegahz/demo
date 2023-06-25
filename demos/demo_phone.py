@@ -148,12 +148,12 @@ def run(args):
 
             conf = args.alpha * conf_play + (1 - args.alpha) * conf_kps
             p1, p2 = (int(xyxy[0]), int(xyxy[1])), (int(xyxy[2]), int(xyxy[3]))
-            if conf > 0.5:
+            if conf > args.th_esb:
                 cv2.rectangle(frame, p1, p2, (0, 0, 255), thickness=5, lineType=cv2.LINE_AA)
                 cv2.putText(frame, f'{conf:.2f}', (p1[0], p1[1] - 2), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
                 # cv2.putText(frame, f'{conf_kps:.2f}', (p1[0], p1[1] - 2), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
             cv2.putText(frame, f'{conf_kps:.2f}', (p1[0], int((p1[1] + p2[1]) / 2.)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 128), 2)
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 0, 0), 2)
 
         cv2.putText(frame, f'{idx_frame} / {fc}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
 
@@ -170,11 +170,11 @@ def run(args):
 def parse_ars():
     parser = argparse.ArgumentParser()
     parser.add_argument('--path_in_mp4', default='/media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4', type=str)  # TODO
-    # parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4', type=str)
+    parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4', type=str)
     # parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.166.45.mp4', type=str)
     # parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.164.49.mp4', type=str)
     # parser.add_argument('--path_in', default='rtsp://192.168.1.40:554/live/av0', type=str)
-    parser.add_argument('--path_in', default='rtsp://192.168.3.200:554/ch0_1', type=str)
+    # parser.add_argument('--path_in', default='rtsp://192.168.3.200:554/ch0_1', type=str)
     parser.add_argument('--yaml_phone', default='/home/manu/workspace/YOLOv6/data/phone.yaml', type=str)
     parser.add_argument('--weights_phone', default='/home/manu/tmp/exp12/weights/best_ckpt.pt', type=str)
     # parser.add_argument('--weights_phone', default='/home/manu/tmp/aux.pt', type=str)
@@ -188,7 +188,7 @@ def parse_ars():
     parser.add_argument('--hide_labels', default=True, action='store_true', help='hide labels.')
     parser.add_argument('--hide_conf', default=False, action='store_true', help='hide confidences.')
     parser.add_argument('--alpha', default=0.5, type=float)
-    parser.add_argument('--th_esb', default=0.4, type=float)
+    parser.add_argument('--th_esb', default=0.5, type=float)
     parser.add_argument('--ext_info', default=True, action='store_true')
     return parser.parse_args()
 

@@ -1,4 +1,5 @@
 import argparse
+import torch
 import logging
 import os
 import sys
@@ -79,21 +80,26 @@ def run(args):
             if results_kps is not None:
                 frame = inferer_kps.draw_results(frame, results_kps)
 
-        if len(det_play) < 1:
+        if len(det_play) < 1:  # player detection major
             continue
 
         for idx, (*xyxy, conf_play, _) in enumerate(det_play):
-            max_match_iog_people = max(iogs_pepole[idx, :]) if iogs_pepole.shape[1] > 0 else 0.
-            max_match_iog_people_th = 0.6
-            det_people_pick = det_people[np.argmax(iogs_pepole[idx, :])] if iogs_pepole.shape[1] > 0 and max_match_iog_people > max_match_iog_people_th else None
-            det_people_pick_idx = np.argmax(iogs_pepole[idx, :]) if iogs_pepole.shape[1] > 0 and max_match_iog_people > max_match_iog_people_th else -1
-            joints = np.ones((17, 3)) * 99999  # TODO
-            dir_r_norm = np.ones((1, 2)) * 99999  # TODO
-            dir_l_norm = np.ones((1, 2)) * 99999  # TODO
+            joints = np.ones((17, 3)) * sys.maxsize
+            dir_r_norm = np.ones((1, 2)) * sys.maxsize
+            dir_l_norm = np.ones((1, 2)) * sys.maxsize
+            dist_l, dist_r = sys.maxsize, sys.maxsize
             sz_pick = 1.
             conf_kps = 0.
+
+            max_match_iog_people_th = 0.6
+            max_match_iog_people = max(iogs_pepole[idx, :]) if len(iogs_pepole) > 0 else 0.
+            det_people_pick = det_people[
+                np.argmax(iogs_pepole[idx, :])] if max_match_iog_people > max_match_iog_people_th else None
+            det_people_pick_idx = np.argmax(
+                iogs_pepole[idx, :]) if max_match_iog_people > max_match_iog_people_th else -1
             if det_people_pick is not None:
-                sz_pick = (det_people_pick[2] - det_people_pick[0]) * (det_people_pick[3] - det_people_pick[1])
+                sz_pick = torch.sqrt(
+                    (det_people_pick[2] - det_people_pick[0]) * (det_people_pick[3] - det_people_pick[1]))
                 *xyxy_p, conf_p, _ = det_people_pick
                 label_p = f'{conf_p:.2f}'
                 inferer_play.plot_box_and_label(frame, max(round(sum(frame.shape) / 2 * 0.003), 2), xyxy_p, label_p,
@@ -111,11 +117,14 @@ def run(args):
                 cv2.line(frame, tuple(joints[10, :2].astype(int)), tuple(joints[8, :2].astype(int)), (0, 255, 255), 2)
                 cv2.line(frame, tuple(joints[9, :2].astype(int)), tuple(joints[7, :2].astype(int)), (0, 255, 255), 2)
 
-            max_match_iog = max(iogs_phone[:, idx]) if iogs_phone.shape[0] > 0 else 0.
-            conf_phone = det_phone[np.argmax(iogs_phone[:, idx]), -2] if iogs_phone.shape[0] > 0 and max_match_iog > 0.9 else 0.
-            det_phone_pick = det_phone[np.argmax(iogs_phone[:, idx])] if iogs_phone.shape[0] > 0 and max_match_iog > 0.9 else None
+            max_match_iog_th = 0.9
+            max_match_iog = max(iogs_phone[:, idx]) if len(iogs_phone) > 0 else 0.
+            # conf_phone = det_phone[np.argmax(iogs_phone[:, idx]), -2] if len(
+            #     iogs_phone) > 0 and max_match_iog > max_match_iog_th else 0.
+            det_phone_pick = det_phone[np.argmax(iogs_phone[:, idx])] if len(
+                iogs_phone) and max_match_iog > max_match_iog_th else None
             if det_phone_pick is not None:
-                rescale = 1000.
+                rescale = 10.
                 cxcy_phone = (int((det_phone_pick[0] + det_phone_pick[2]) / 2.),
                               int((det_phone_pick[1] + det_phone_pick[3]) / 2.))
                 cv2.circle(frame, cxcy_phone, 2, (0, 255, 0), 2)
@@ -129,21 +138,25 @@ def run(args):
                 cos_l = np.dot(dir_l_p_norm, dir_l_norm.T)[0][0]
                 w_l = 2 - cos_l
                 dist_l = np.linalg.norm(dir_l_p) * w_l / sz_pick * rescale
-                # conf_kps = (max(1 / dist_l * joints[9, 2], 1 / dist_r * joints[10, 2]) + det_phone_pick[-2]) / 2.
-                conf_kps = (1 / dist_l * joints[9, 2] + 1 / dist_r * joints[10, 2] + det_phone_pick[-2]) / 3.
-                if joints[10, 2] < 99999 and joints[9, 2] < 99999:
+                if joints[10, 2] < sys.maxsize and joints[9, 2] < sys.maxsize:
                     color = (0, 0, 128)
                     cv2.line(frame, tuple(joints[10, :2].astype(int)), cxcy_phone, color, 2)
                     cv2.line(frame, tuple(joints[9, :2].astype(int)), cxcy_phone, color, 2)
-                    cv2.putText(frame, f'{dist_r:.2f}', tuple(joints[10, :2].astype(int)), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 255), 2)
-                    cv2.putText(frame, f'{dist_l:.2f}', tuple(joints[9, :2].astype(int)), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 0), 2)
+                    cv2.putText(frame, f'{dist_r:.2f}', tuple(joints[10, :2].astype(int)), cv2.FONT_HERSHEY_SIMPLEX,
+                                1.2, (0, 255, 255), 2)
+                    cv2.putText(frame, f'{dist_l:.2f}', tuple(joints[9, :2].astype(int)), cv2.FONT_HERSHEY_SIMPLEX, 1.2,
+                                (255, 255, 0), 2)
+                # conf_kps = (max(1 / dist_l * joints[9, 2], 1 / dist_r * joints[10, 2]) + det_phone_pick[-2]) / 2.
+                conf_kps = (1 / (dist_l + 1.) * joints[9, 2] + 1 / (dist_r + 1.) * joints[10, 2]
+                            + det_phone_pick[-2]) / 3.
 
             conf = args.alpha * conf_play + (1 - args.alpha) * conf_kps
-            if conf > 0.8:
+            if conf > 0.5:
                 p1, p2 = (int(xyxy[0]), int(xyxy[1])), (int(xyxy[2]), int(xyxy[3]))
                 cv2.rectangle(frame, p1, p2, (0, 0, 255), thickness=5, lineType=cv2.LINE_AA)
                 cv2.putText(frame, f'{conf:.2f}', (p1[0], p1[1] - 2), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
                 # cv2.putText(frame, f'{conf_kps:.2f}', (p1[0], p1[1] - 2), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
+                cv2.putText(frame, f'{conf_kps:.2f}', cxcy_phone, cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
 
         cv2.putText(frame, f'{idx_frame} / {fc}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
 
@@ -177,7 +190,7 @@ def parse_ars():
     parser.add_argument('--img_size', nargs='+', type=int, default=[1280, 1280])
     parser.add_argument('--hide_labels', default=True, action='store_true', help='hide labels.')
     parser.add_argument('--hide_conf', default=False, action='store_true', help='hide confidences.')
-    parser.add_argument('--alpha', default=0.4, type=float)
+    parser.add_argument('--alpha', default=0.5, type=float)
     parser.add_argument('--th_esb', default=0.4, type=float)
     parser.add_argument('--ext_info', default=True, action='store_true')
     return parser.parse_args()

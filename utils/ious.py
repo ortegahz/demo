@@ -12,6 +12,9 @@ def ious_calc(bb_a, bb_b):
     :param bb_b: shape -> m x 4
     :return: 
     """
+    if len(bb_a) < 1 or len(bb_b) < 1:
+        return np.array([])
+
     bb_b = np.expand_dims(bb_b, 0)
     bb_a = np.expand_dims(bb_a, 1)
 
@@ -34,6 +37,9 @@ def iogs_calc(bb_a, bb_b):
     :param bb_b: shape -> m x 4
     :return:
     """
+    if len(bb_a) < 1 or len(bb_b) < 1:
+        return np.array([])
+
     bb_b = np.expand_dims(bb_b, 0)
     bb_a = np.expand_dims(bb_a, 1)
 

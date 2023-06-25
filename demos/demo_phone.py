@@ -147,17 +147,16 @@ def run(args):
                     cv2.putText(frame, f'{dist_l:.2f}', tuple(joints[9, :2].astype(int)), cv2.FONT_HERSHEY_SIMPLEX, 1.2,
                                 (255, 255, 0), 2)
                 # conf_kps = (max(1 / dist_l * joints[9, 2], 1 / dist_r * joints[10, 2]) + det_phone_pick[-2]) / 2.
-                conf_kps = (1 / (dist_l + 1.) * joints[9, 2] + 1 / (dist_r + 1.) * joints[10, 2]
-                            + det_phone_pick[-2]) / 3.
+                conf_kps = (1 / (dist_l + 1.) * joints[9, 2] + 1 / (dist_r + 1.) * joints[10, 2]) / 2.
 
             conf = args.alpha * conf_play + (1 - args.alpha) * conf_kps
+            p1, p2 = (int(xyxy[0]), int(xyxy[1])), (int(xyxy[2]), int(xyxy[3]))
             if conf > 0.5:
-                p1, p2 = (int(xyxy[0]), int(xyxy[1])), (int(xyxy[2]), int(xyxy[3]))
                 cv2.rectangle(frame, p1, p2, (0, 0, 255), thickness=5, lineType=cv2.LINE_AA)
                 cv2.putText(frame, f'{conf:.2f}', (p1[0], p1[1] - 2), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
                 # cv2.putText(frame, f'{conf_kps:.2f}', (p1[0], p1[1] - 2), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
-                cv2.putText(frame, f'{conf_kps:.2f}', (p1[0], int((p1[1] + p2[1]) / 2.)),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 128), 2)
+            cv2.putText(frame, f'{conf_kps:.2f}', (p1[0], int((p1[1] + p2[1]) / 2.)),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 128), 2)
 
         cv2.putText(frame, f'{idx_frame} / {fc}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
 

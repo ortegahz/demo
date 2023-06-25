@@ -156,7 +156,8 @@ def run(args):
                 cv2.rectangle(frame, p1, p2, (0, 0, 255), thickness=5, lineType=cv2.LINE_AA)
                 cv2.putText(frame, f'{conf:.2f}', (p1[0], p1[1] - 2), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
                 # cv2.putText(frame, f'{conf_kps:.2f}', (p1[0], p1[1] - 2), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
-                cv2.putText(frame, f'{conf_kps:.2f}', cxcy_phone, cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
+                cv2.putText(frame, f'{conf_kps:.2f}', (p1[0], int((p1[1] + p2[1]) / 2.)),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 128), 2)
 
         cv2.putText(frame, f'{idx_frame} / {fc}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
 

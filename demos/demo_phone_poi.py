@@ -123,7 +123,8 @@ def run(args):
                     values.append(value)
                 if len(values) > 1:
                     logging.info(len(values))
-            poi_x, poi_y = max_phone_ac[0] * max_phone_ac[2], max_phone_ac[1] * max_phone_ac[2]
+            poi_x, poi_y, poi_conf =\
+                max_phone_ac[0] * max_phone_ac[2], max_phone_ac[1] * max_phone_ac[2], max_phone_ac[-1]
             poi_x, poi_y = poi_x - padding[0], poi_y - padding[1]
             poi_x, poi_y = poi_x / ratio, poi_y / ratio
             cv2.circle(frame, (int(poi_x), int(poi_y)), 2, (0, 255, 0), 2)
@@ -143,14 +144,14 @@ def run(args):
                     (det_people_pick[2] - det_people_pick[0]) * (det_people_pick[3] - det_people_pick[1]))
                 *xyxy_p, conf_p, _ = det_people_pick
                 label_p = f'{conf_play:.2f}'
-                inferer_play.plot_box_and_label(frame, max(round(sum(frame.shape) / 2 * 0.003), 2), xyxy_p, label_p,
-                                                color=(0, 255, 255))
+                # inferer_play.plot_box_and_label(frame, max(round(sum(frame.shape) / 2 * 0.003), 2), xyxy_p, label_p,
+                #                                 color=(0, 255, 255))
                 results_kps_pick = results_kps[det_people_pick_idx]
                 joints = np.array(results_kps_pick['keypoints']).reshape((17, 3))
-                # for i in [9, 10]:
-                #     color = (0, 255, 255)
-                #     if joints[i, 0] > 0 and joints[i, 1] > 0:
-                #         cv2.circle(frame, tuple(joints[i, :2].astype(int)), 2, color, 2)
+                for i in [9, 10]:
+                    color = (0, 255, 255)
+                    if joints[i, 0] > 0 and joints[i, 1] > 0:
+                        cv2.circle(frame, tuple(joints[i, :2].astype(int)), 2, color, 2)
                 dir_r = joints[10, :2] - joints[8, :2]
                 dir_r_norm = preprocessing.normalize(dir_r[None, :])
                 dir_l = joints[9, :2] - joints[7, :2]
@@ -164,7 +165,8 @@ def run(args):
             #     iogs_phone) > 0 and max_match_iog > max_match_iog_th else 0.
             det_phone_pick = det_phone[np.argmax(iogs_phone[:, idx])] if len(
                 iogs_phone) and max_match_iog > max_match_iog_th else None
-            if det_phone_pick is not None:
+            # if det_phone_pick is not None:
+            if det_phone_pick is not None or args.poi:
                 rescale = 10.
                 # cxcy_phone = (int((det_phone_pick[0] + det_phone_pick[2]) / 2.),
                 #               int((det_phone_pick[1] + det_phone_pick[3]) / 2.))
@@ -189,7 +191,8 @@ def run(args):
                     cv2.putText(frame, f'{dist_l:.2f}', tuple(joints[9, :2].astype(int)), cv2.FONT_HERSHEY_SIMPLEX, 1.2,
                                 (255, 255, 0), 2)
                 # conf_kps = (max(1 / dist_l * joints[9, 2], 1 / dist_r * joints[10, 2]) + det_phone_pick[-2]) / 2.
-                conf_kps = (1 / (dist_l + 1.) * joints[9, 2] + 1 / (dist_r + 1.) * joints[10, 2]) / 2.
+                conf_kps = (1 / (dist_l + 1.) * joints[9, 2] * poi_conf +
+                            1 / (dist_r + 1.) * joints[10, 2] * poi_conf) / 2.
 
             conf = args.alpha * conf_play + (1 - args.alpha) * conf_kps
             p1, p2 = (int(xyxy[0]), int(xyxy[1])), (int(xyxy[2]), int(xyxy[3]))
@@ -215,8 +218,8 @@ def run(args):
 def parse_ars():
     parser = argparse.ArgumentParser()
     parser.add_argument('--path_in_mp4', default='/media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4', type=str)  # TODO
-    parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4', type=str)
-    # parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.166.45.mp4', type=str)
+    # parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4', type=str)
+    parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.166.45.mp4', type=str)
     # parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.164.49.mp4', type=str)
     # parser.add_argument('--path_in', default='rtsp://192.168.1.40:554/live/av0', type=str)
     # parser.add_argument('--path_in', default='rtsp://192.168.3.200:554/ch0_1', type=str)
@@ -235,6 +238,7 @@ def parse_ars():
     parser.add_argument('--alpha', default=0.5, type=float)
     parser.add_argument('--th_esb', default=0.5, type=float)
     parser.add_argument('--ext_info', default=True, action='store_true')
+    parser.add_argument('--poi', default=True, type=bool)
     return parser.parse_args()
 
 

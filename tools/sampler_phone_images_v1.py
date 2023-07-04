@@ -1,18 +1,17 @@
 import argparse
 import copy
-import torch
+import glob
 import logging
-import shutil
 import os
+import shutil
 import sys
-
-from multiprocessing import Process, Queue
 
 import cv2
 import numpy as np
+import torch
 from sklearn import preprocessing
+from tqdm import tqdm
 
-from utils.decoder import process_decoder
 from utils.ious import iogs_calc
 from utils.logging import set_logging
 
@@ -39,16 +38,11 @@ def run(args):
     inferer_people = Inferer(args.path_in_mp4, False, 0, args.weights_people, 0, args.yaml_people, args.img_size, False)
     inferer_kps = RSNInferer(args.weights_kps)
 
-    q_decoder = Queue()
-    p_decoder = Process(target=process_decoder, args=(args.path_in, q_decoder), daemon=True)
-    p_decoder.start()
+    paths_img = glob.glob(os.path.join(args.dir_in_root, '*'))
 
-    save_path = '/home/manu/tmp/results.mp4'  # force *.mp4 suffix on results videos
-    vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), 15, (1920, 1080))
-
-    while True:
-        item_frame = q_decoder.get()
-        idx_frame, frame, fc = item_frame
+    for idx_frame, path_img in tqdm(enumerate(paths_img)):
+        frame = cv2.imread(path_img)
+        frame_org = copy.deepcopy(frame)
 
         det_phone, _, pred_phone = inferer_phone.infer_custom(frame, 0.4, 0.45, None, False, 1000)
         det_play, det_play_unrs, _ = inferer_play.infer_custom(frame, 0.2, 0.45, None, False, 1000)
@@ -105,6 +99,7 @@ def run(args):
             # if results_kps is not None:
             #     frame = inferer_kps.draw_results(frame, results_kps)
 
+        det_play_pick = []
         for idx, (*xyxy, conf_play, _) in enumerate(det_play):
             joints = np.ones((17, 3)) * sys.maxsize
             dir_r_norm = np.ones((1, 2)) * sys.maxsize
@@ -209,23 +204,60 @@ def run(args):
                 cv2.rectangle(frame, p1, p2, (0, 0, 255), thickness=5, lineType=cv2.LINE_AA)
                 cv2.putText(frame, f'{conf:.2f}', (p1[0], p1[1] - 2), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
                 # cv2.putText(frame, f'{conf_kps:.2f}', (p1[0], p1[1] - 2), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 2)
+                det_play_pick.append(det_play[idx])
             cv2.putText(frame, f'{conf_kps:.2f}', (p1[0], int((p1[1] + p2[1]) / 2.)),
                         cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 0, 0), 2)
 
-        cv2.putText(frame, f'{idx_frame} / {fc}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
+        cv2.putText(frame, f'{idx_frame} / {len(paths_img)}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
 
         cv2.imshow('results', frame)
-        if cv2.waitKey(1) & 0xFF == ord('q') or (idx_frame > fc - 10 and fc > 0):
+        if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-        vid_writer.write(frame)
+        if len(det_phone):
+            subset = 'train'  # lazy people
+            name, _ = os.path.basename(path_img).split('.')
+            path_img_out = os.path.join(args.save_dir_root, 'images', subset, f'{name}.jpg')
+            cv2.imwrite(path_img_out, frame_org)
+
+            h_img, w_img, _ = frame_org.shape
+
+            path_label_out = path_img_out.replace('.jpg', '.txt')
+            path_label_out = path_label_out.replace('images', 'labels')
+            with open(path_label_out, 'w') as f:
+                for *xyxy, conf_play, cls in det_phone:
+                    cx = (xyxy[0] + xyxy[2]) / 2. / w_img
+                    cy = (xyxy[1] + xyxy[3]) / 2. / h_img
+                    w = (xyxy[2] - xyxy[0]) / w_img
+                    h = (xyxy[3] - xyxy[1]) / h_img
+                    f.writelines(f'0 {cx} {cy} {w} {h}\n')
+
+        if len(det_play_pick):
+            subset = 'train'  # lazy people
+            name, _ = os.path.basename(path_img).split('.')
+            path_img_out = os.path.join(args.save_dir_root, 'images', subset, f'{name}.jpg')
+            if not os.path.exists(path_img_out):
+                cv2.imwrite(path_img_out, frame_org)
+
+            h_img, w_img, _ = frame_org.shape
+
+            path_label_out = path_img_out.replace('.jpg', '.txt')
+            path_label_out = path_label_out.replace('images', 'labels')
+            with open(path_label_out, 'a') as f:
+                for *xyxy, conf_play, cls in det_play_pick:
+                    cx = (xyxy[0] + xyxy[2]) / 2. / w_img
+                    cy = (xyxy[1] + xyxy[3]) / 2. / h_img
+                    w = (xyxy[2] - xyxy[0]) / w_img
+                    h = (xyxy[3] - xyxy[1]) / h_img
+                    f.writelines(f'1 {cx} {cy} {w} {h}\n')
 
     cv2.destroyAllWindows()
-    vid_writer.release()
 
 
 def parse_ars():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--dir_in_root', default='/home/manu/mnt/kingstoo/tmp/pic', type=str)
+    parser.add_argument('--save_dir_root', default='/media/manu/kingstoo/tmp/pics_phone_sample_r2', type=str)
     parser.add_argument('--path_in_mp4', default='/media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4', type=str)  # TODO
     # parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4', type=str)
     parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.166.45.mp4', type=str)
@@ -248,6 +280,7 @@ def parse_ars():
     parser.add_argument('--th_esb', default=0.5, type=float)
     parser.add_argument('--ext_info', default=True, action='store_true')
     parser.add_argument('--poi', default=True, type=bool)
+    parser.add_argument('--reset', default=True, type=bool)
     return parser.parse_args()
 
 

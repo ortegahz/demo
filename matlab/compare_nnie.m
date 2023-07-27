@@ -1,7 +1,11 @@
 clear; close all;
 
-out_ref = load('/media/manu/kingstop/workspace/ONNXToCaffe/output/dump/layers/input_640x640.txt');
-out_q = load('/home/manu/nfs/mpp/sample/svp/nnie/seg0_layer2_output0_inst.linear.txt');
+out_ref = load('/home/manu/tmp/rknn_outputs_2.txt');
+out_q = load('/home/manu/nfs/mpp/sample/svp/nnie/seg0_layer80_output0_inst.linear.float');
+
+% out_ref_rs = reshape(out_ref, 13, 13, 85 * 3);
+% out_ref_perm = permute(out_ref_rs,[3 1 2]);
+% out_ref = reshape(out_ref_perm,[],1);
 
 error = sum((out_ref - out_q) .^ 2) / length(out_ref);
 

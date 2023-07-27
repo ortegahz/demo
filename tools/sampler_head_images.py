@@ -72,10 +72,10 @@ def run(args):
 def parse_ars():
     parser = argparse.ArgumentParser()
     parser.add_argument('--path_in_mp4', default='/media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4', type=str)  # TODO
-    parser.add_argument('--dir_in_root', default='/media/manu/kingstoo/tmp/sucai', type=str)
+    parser.add_argument('--dir_in_root', default='/media/manu/kingstoo/tmp/jjl/m', type=str)
     parser.add_argument('--save_dir_root', default='/media/manu/kingstoo/tmp/pics_head_sample', type=str)
     parser.add_argument('--yaml_head', default='/media/manu/kingstop/workspace/YOLOv6/data/head.yaml', type=str)
-    parser.add_argument('--weights_head', default='/home/manu/tmp/nn6_ft_b32_nab_s1280/weights/best_ckpt.pt', type=str)
+    parser.add_argument('--weights_head', default='/home/manu/tmp/nn6_ft_b32_nab_s1280_dv1r/weights/best_ckpt.pt', type=str)
     parser.add_argument('--img_size', nargs='+', type=int, default=[1280, 1280])
     parser.add_argument('--hide_labels', default=True, action='store_true', help='hide labels.')
     parser.add_argument('--hide_conf', default=False, action='store_true', help='hide confidences.')

@@ -5,7 +5,7 @@
 close all; clear;
 
 %%
-opts.dir_img = '/home/manu/tmp/imgs/';
+opts.dir_img = '/home/manu/tmp/imgs_quat/';
 opts.output = '/home/manu/tmp/dataset.txt';
 
 %%

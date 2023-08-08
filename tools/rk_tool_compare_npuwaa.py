@@ -55,7 +55,7 @@ def run(args):
                 path_npu_pick = path_npu
                 break
         if not path_aa_pick or not path_npu_pick:
-            break
+            continue
         logging.info((os.path.split(path_npu_pick)[-1], os.path.split(path_aa_pick)[-1]))
         file_name = os.path.split(path_npu_pick)[-1]
         file_name_split = file_name.split('_')
@@ -68,15 +68,16 @@ def run(args):
         array_aa = np.array([float(x) for x in lines_aa])
         array_npu = array_npu.reshape((c, h, w))
         array_npu_perm = array_npu.transpose(1, 2, 0)  # c h w --> h w c
-        cos_sim = cos_sim_calc(array_npu_perm.flatten(), array_aa)
-        logging.info(f'cos sim --> {cos_sim}')
+        if len(array_npu_perm.flatten()) == len(array_aa):
+            cos_sim = cos_sim_calc(array_npu_perm.flatten(), array_aa)
+            logging.info(f'cos sim --> {cos_sim}')
 
 
 def parse_ars():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dir_root_npu', default='/home/manu/nfs/rv1126/install/rknn_yolov5_demo', type=str)
     parser.add_argument('--dir_root_aa',
-                        default='/media/manu/kingstop/workspace/rknn-toolkit/examples/onnx/acfree/snapshot/fp32',
+                        default='/media/manu/kingstop/workspace/rknn-toolkit/examples/onnx/acfree/snapshot_hq/fp32',
                         type=str)
     return parser.parse_args()
 

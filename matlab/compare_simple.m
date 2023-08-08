@@ -1,7 +1,7 @@
 clear; close all;
 
-out_ref = load('/media/manu/kingstop/workspace/rknn-toolkit/examples/onnx/acfree/snapshot/fp32/ConvTranspose_ConvTranspose_60_59_plane_131_out0_nhwc_1_79_79_32.tensor');
-out_q = load('/media/manu/kingstop/workspace/rknn-toolkit/examples/onnx/acfree/snapshot/entire_qnt/ConvTranspose_ConvTranspose_60_59_plane_131_out0_nhwc_1_79_79_32.tensor');
+out_ref = load('/home/manu/tmp/pytorch_outputs_reg_output_3.txt');
+out_q = load('/home/manu/nfs/rv1126/install/rknn_yolov5_demo/rknn_output_real_nq_7.txt');
 
 error = sum((out_ref - out_q) .^ 2) / length(out_ref);
 sim_cos = dot(out_ref, out_q) / (norm(out_ref) * norm(out_q));  

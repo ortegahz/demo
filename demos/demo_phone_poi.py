@@ -1,6 +1,5 @@
 import argparse
 import copy
-import torch
 import logging
 import os
 import sys
@@ -8,12 +7,14 @@ from multiprocessing import Process, Queue
 
 import cv2
 import numpy as np
+import torch
 from sklearn import preprocessing
 
 from utils.decoder import process_decoder
 from utils.ious import iogs_calc
 from utils.logging import set_logging
 
+# using branch manu_demo_api
 os.environ['RSN_HOME'] = '/media/manu/kingstop/workspace/RSN'
 sys.path.append(os.environ['RSN_HOME'])
 sys.path.append(os.path.join(os.environ['RSN_HOME'], 'exps', 'RSN18.coco'))
@@ -34,7 +35,7 @@ def run(args):
     p_decoder.start()
 
     save_path = '/home/manu/tmp/results.mp4'  # force *.mp4 suffix on results videos
-    vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), 15, (1920, 1080))
+    vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), 5, (1920, 1080))
 
     while True:
         item_frame = q_decoder.get()
@@ -60,9 +61,8 @@ def run(args):
         for s in strides:
             h, w = int(model_in_sz[0] / s), int(model_in_sz[1] / s)
             idx_e = idx_s + int(h * w)
-            pred_phone_cls_lst.append(pred_phone_cls[:, idx_s : idx_e].reshape(h, w))
+            pred_phone_cls_lst.append(pred_phone_cls[:, idx_s: idx_e].reshape(h, w))
             idx_s = idx_e
-
 
         iogs_phone = iogs_calc(bboxes_phone, bboxes_play)
         bboxes_people[:, 3] -= (bboxes_people[:, 3] - bboxes_people[:, 1]) / 2
@@ -75,11 +75,11 @@ def run(args):
             results_kps = inferer_kps.inference(frame, idets_kps)
 
         if args.ext_info:
-            # if len(det_phone):
-            #     for _, (*xyxy, conf, cls) in enumerate(det_phone):
-            #         label = f'{conf:.2f}'
-            #         inferer_phone.plot_box_and_label(frame, max(round(sum(frame.shape) / 2 * 0.003), 2), xyxy, label,
-            #                                          color=(0, 255, 0))
+            if len(det_phone):
+                for _, (*xyxy, conf, cls) in enumerate(det_phone):
+                    label = f'{conf:.2f}'
+                    inferer_phone.plot_box_and_label(frame, max(round(sum(frame.shape) / 2 * 0.003), 2), xyxy, label,
+                                                     color=(0, 255, 0))
 
             if len(det_play):
                 for idx, (*xyxy, conf, cls) in enumerate(det_play):
@@ -93,8 +93,8 @@ def run(args):
             #         inferer_play.plot_box_and_label(frame, max(round(sum(frame.shape) / 2 * 0.003), 2), xyxy, label,
             #                                         color=(255, 0, 0))
 
-            # if results_kps is not None:
-            #     frame = inferer_kps.draw_results(frame, results_kps)
+            if results_kps is not None:
+                frame = inferer_kps.draw_results(frame, results_kps)
 
         for idx, (*xyxy, conf_play, _) in enumerate(det_play):
             joints = np.ones((17, 3)) * sys.maxsize
@@ -123,7 +123,7 @@ def run(args):
                     values.append(value)
                 if len(values) > 1:
                     logging.info(len(values))
-            poi_x, poi_y, poi_conf =\
+            poi_x, poi_y, poi_conf = \
                 max_phone_ac[0] * max_phone_ac[2], max_phone_ac[1] * max_phone_ac[2], max_phone_ac[-1]
             poi_x, poi_y = poi_x - padding[0], poi_y - padding[1]
             poi_x, poi_y = poi_x / ratio, poi_y / ratio
@@ -148,10 +148,10 @@ def run(args):
                 #                                 color=(0, 255, 255))
                 results_kps_pick = results_kps[det_people_pick_idx]
                 joints = np.array(results_kps_pick['keypoints']).reshape((17, 3))
-                for i in [9, 10]:
-                    color = (0, 255, 255)
-                    if joints[i, 0] > 0 and joints[i, 1] > 0:
-                        cv2.circle(frame, tuple(joints[i, :2].astype(int)), 2, color, 2)
+                # for i in [9, 10]:
+                #     color = (0, 255, 255)
+                #     if joints[i, 0] > 0 and joints[i, 1] > 0:
+                #         cv2.circle(frame, tuple(joints[i, :2].astype(int)), 2, color, 2)
                 dir_r = joints[10, :2] - joints[8, :2]
                 dir_r_norm = preprocessing.normalize(dir_r[None, :])
                 dir_l = joints[9, :2] - joints[7, :2]
@@ -218,19 +218,22 @@ def run(args):
 def parse_ars():
     parser = argparse.ArgumentParser()
     parser.add_argument('--path_in_mp4', default='/media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4', type=str)  # TODO
-    # parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4', type=str)
-    parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.166.45.mp4', type=str)
+    parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4', type=str)
+    # parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.166.45.mp4', type=str)
     # parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.164.49.mp4', type=str)
     # parser.add_argument('--path_in', default='rtsp://192.168.1.40:554/live/av0', type=str)
     # parser.add_argument('--path_in', default='rtsp://192.168.3.200:554/ch0_1', type=str)
     parser.add_argument('--yaml_phone', default='/home/manu/workspace/YOLOv6/data/phone.yaml', type=str)
-    parser.add_argument('--weights_phone', default='/home/manu/tmp/exp12/weights/best_ckpt.pt', type=str)
+    parser.add_argument('--weights_phone', default='/home/manu/tmp/nn6_ft_b64_nab_s1280_dpc/weights/best_ckpt.pt',
+                        type=str)
     # parser.add_argument('--weights_phone', default='/home/manu/tmp/aux.pt', type=str)
     parser.add_argument('--yaml_play', default='/home/manu/workspace/YOLOv6/data/play.yaml', type=str)
-    parser.add_argument('--weights_play', default='/home/manu/tmp/exp16/weights/best_ckpt.pt', type=str)
+    parser.add_argument('--weights_play', default='/home/manu/tmp/nn6_ft_b64_nab_s1280_dl/weights/best_ckpt.pt',
+                        type=str)
     # parser.add_argument('--weights_play', default='/home/manu/tmp/main.pt', type=str)
     parser.add_argument('--yaml_people', default='/media/manu/kingstop/workspace/YOLOv6/data/people.yaml', type=str)
-    parser.add_argument('--weights_people', default='/home/manu/tmp/exp2/weights/best_ckpt.pt', type=str)
+    parser.add_argument('--weights_people', default='/home/manu/tmp/nn6_ft_b32_nab_s1280/weights/best_ckpt.pt',
+                        type=str)
     parser.add_argument('--weights_kps', default='/home/manu/tmp/iter-96000.pth', type=str)
     parser.add_argument('--img_size', nargs='+', type=int, default=[1280, 1280])
     parser.add_argument('--hide_labels', default=True, action='store_true', help='hide labels.')

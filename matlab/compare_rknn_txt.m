@@ -4,7 +4,7 @@ clear; close all;
 %%
 % TODO: different list order for ref and rk
 
-out_ref = load('/media/manu/kingstop/workspace/YOLOv6/runs/inference/head/labels/sylgd_rp.txt');
+out_ref = load('/home/manu/tmp/pytorch_results.txt');
 out_rk = load('/home/manu/tmp/results_rknn.txt');
 % out_rk = load('/home/manu/nfs/rv1126/install/rknn_yolov5_demo/npu_parser_results.txt');
 

@@ -42,7 +42,8 @@ def run(args):
         det_play, det_play_unrs, pred_results_phone = inferer_esb.infer_rknn(frame, 0.4, 0.45, None, False, 1000)
 
         # prepare pred_phone_cls_lst
-        model_in_sz = [768, 1280]  # for 1080 x 1920 (h x w)
+        # model_in_sz = [768, 1280]  # for 1080 x 1920 (h x w)
+        model_in_sz = [1280, 1280]  # for 1280 x 1280 (h x w)
         strides = inferer_esb.model_rknn.stride
         ratio = min(model_in_sz[0] / frame.shape[0], model_in_sz[1] / frame.shape[1])  # pick 1280 / 1920
         padding = (model_in_sz[1] - frame.shape[1] * ratio) / 2, (model_in_sz[0] - frame.shape[0] * ratio) / 2
@@ -81,6 +82,13 @@ def run(args):
                                                color=(0, 255, 255))
         if results_kps is not None:
             frame = inferer_kps.draw_results(frame, results_kps)
+
+        gn = torch.tensor(frame.shape)[[1, 0, 1, 0]]
+        for *xyxy, conf, cls in reversed(det_play):
+            xywh = (inferer_esb.box_convert(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
+            line = (cls, *xywh, conf)
+            with open('/home/manu/tmp/pytorch_results' + '.txt', 'a') as f:
+                f.write(('%g ' * len(line)).rstrip() % line + '\n')
 
         # confs calculation
         for idx, (*xyxy, conf_play, _) in enumerate(det_play):
@@ -174,7 +182,7 @@ def parse_ars():
     parser.add_argument('--hide_labels', default=True, action='store_true', help='hide labels.')
     parser.add_argument('--hide_conf', default=False, action='store_true', help='hide confidences.')
     parser.add_argument('--alpha', default=0.5, type=float)
-    parser.add_argument('--th_esb', default=0.5, type=float)
+    parser.add_argument('--th_esb', default=0.4, type=float)
     parser.add_argument('--poi', default=True, type=bool)
     return parser.parse_args()
 

@@ -1,7 +1,7 @@
 clear; close all;
 
-out_ref = load('/home/manu/tmp/pytorch_outputs_reg_output_3.txt');
-out_q = load('/home/manu/nfs/rv1126/install/rknn_yolov5_demo/rknn_output_real_nq_7.txt');
+out_ref = load('/home/manu/tmp/pytorch_outputs_ys_3.txt');
+out_q = load('/home/manu/tmp/rknn_output_3_nq.txt');
 
 error = sum((out_ref - out_q) .^ 2) / length(out_ref);
 sim_cos = dot(out_ref, out_q) / (norm(out_ref) * norm(out_q));  

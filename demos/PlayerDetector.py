@@ -115,6 +115,7 @@ class PlayerDetector:
         pred_phone_cls_lst = list()
         pred_results_phone[:, :, 0] *= pred_results_phone[:, :, 1]  # conf = obj_conf * cls_conf
         pred_phone_cls = pred_results_phone[:, :, 0]
+        logging.info(f'pred_phone_cls.shape --> {pred_phone_cls.shape}')
         idx_s = 0
         for s in strides:
             h, w = int(model_in_sz[0] / s), int(model_in_sz[1] / s)
@@ -123,16 +124,13 @@ class PlayerDetector:
             idx_s = idx_e
         self.pred_phone_cls_lst = pred_phone_cls_lst
 
-    def write_esb_results(self, frame, det_play, path_save='/home/manu/tmp/pytorch_results.txt'):
-        if os.path.exists(path_save):
-            os.remove(path_save)
+    def write_esb_results(self, frame, xyxy, conf_play, path_save):
         gn = torch.tensor(frame.shape)[[1, 0, 1, 0]]
-        for *xyxy, conf, cls in reversed(det_play):
-            xywh = (self.inferer_esb.box_convert(torch.tensor(xyxy).view(1, 4)) / gn).view(
-                -1).tolist()  # normalized xywh
-            line = (cls, *xywh, conf)
-            with open(path_save, 'a') as f:
-                f.write(('%g ' * len(line)).rstrip() % line + '\n')
+        xywh = (self.inferer_esb.box_convert(torch.tensor(xyxy).view(1, 4)) / gn).view(
+            -1).tolist()  # normalized xywh
+        line = (0, *xywh, self.poi_x, self.poi_y, self.poi_conf, conf_play)
+        with open(path_save, 'a') as f:
+            f.write(('%g ' * len(line)).rstrip() % line + '\n')
 
     def draw_debug_info_s0(self, frame, det_people, det_play, results_kps):
         if det_people is not None:
@@ -155,6 +153,11 @@ class PlayerDetector:
         # prepare pred_phone_cls_lst
         self.gen_pred_phone_cls_lst(frame, pred_results_phone)
 
+        for i, pred_phone_cls_lst_s in enumerate(self.pred_phone_cls_lst):
+            np.savetxt('/home/manu/tmp/pytorch_outputs_pred_phone_cls_lst_s_%s.txt' % i,
+                       pred_phone_cls_lst_s.detach().cpu().numpy().flatten(),
+                       fmt="%f", delimiter="\n")
+
         # kps detection
         results_kps, det_people = None, None
         if len(det_play):
@@ -169,9 +172,6 @@ class PlayerDetector:
         # draw debug info
         self.draw_debug_info_s0(frame, det_people, det_play, results_kps)
 
-        # write esb results
-        self.write_esb_results(frame, det_play)
-
         # confs calculation
         for idx, (*xyxy, conf_play, _) in enumerate(det_play):
             # calc poi
@@ -179,6 +179,9 @@ class PlayerDetector:
 
             # calc conf
             self.conf_calc(frame, args, idx, det_people, det_play, results_kps)
+
+            # write esb results
+            self.write_esb_results(frame, xyxy, conf_play, args.path_save_txt)
 
 
 def run(args):
@@ -189,6 +192,9 @@ def run(args):
     p_decoder.start()
 
     vid_writer = cv2.VideoWriter(args.path_save_video, cv2.VideoWriter_fourcc(*'mp4v'), 5, (1920, 1080))
+
+    if os.path.exists(args.path_save_txt):
+        os.remove(args.path_save_txt)
 
     while True:
         item_frame = q_decoder.get()
@@ -202,6 +208,7 @@ def run(args):
             break
 
         vid_writer.write(frame)
+        break
 
     cv2.destroyAllWindows()
     vid_writer.release()
@@ -209,6 +216,7 @@ def run(args):
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--path_save_txt', default='/home/manu/tmp/pytorch_results.txt', type=str)
     parser.add_argument('--path_save_video', default='/home/manu/tmp/results.mp4', type=str)
     parser.add_argument('--path_in_mp4', default='/media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4', type=str)  # TODO
     parser.add_argument('--path_in', default='/media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4', type=str)

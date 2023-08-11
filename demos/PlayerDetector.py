@@ -45,7 +45,7 @@ class PlayerDetector:
         dir_l_norm = preprocessing.normalize(dir_l[None, :])
 
         rescale = 10.
-        cxcy_phone = (int(self.poi_x), int(self.poi_y))
+        cxcy_phone = np.array((int(self.poi_x), int(self.poi_y)))
         dir_r_p = cxcy_phone - joints[10, :2]
         dir_r_p_norm = preprocessing.normalize(dir_r_p[None, :])
         cos_r = np.dot(dir_r_p_norm, dir_r_norm.T)[0][0]
@@ -110,7 +110,7 @@ class PlayerDetector:
         strides = self.inferer_esb.model_rknn.stride
         self.ratio = min(model_in_sz[0] / frame.shape[0], model_in_sz[1] / frame.shape[1])  # pick 1280 / 1920
         self.padding = (model_in_sz[1] - frame.shape[1] * self.ratio) / 2, (
-                    model_in_sz[0] - frame.shape[0] * self.ratio) / 2
+                model_in_sz[0] - frame.shape[0] * self.ratio) / 2
         logging.info(f'padding --> {self.padding}')
         pred_phone_cls_lst = list()
         pred_results_phone[:, :, 0] *= pred_results_phone[:, :, 1]  # conf = obj_conf * cls_conf

@@ -14,7 +14,7 @@ def process_decoder(path_video, queue, buff_len=5):
     t_last = time.time()
     while cap.isOpened():
         ret, frame = cap.read()
-        # frame = cv2.imread('/media/manu/samsung/pics/player_1280.bmp')
+        frame = cv2.imread('/media/manu/samsung/pics/player_1280.bmp')
         if not ret:
             break
 

@@ -124,6 +124,8 @@ class PlayerDetector:
         self.pred_phone_cls_lst = pred_phone_cls_lst
 
     def write_esb_results(self, frame, det_play, path_save='/home/manu/tmp/pytorch_results.txt'):
+        if os.path.exists(path_save):
+            os.remove(path_save)
         gn = torch.tensor(frame.shape)[[1, 0, 1, 0]]
         for *xyxy, conf, cls in reversed(det_play):
             xywh = (self.inferer_esb.box_convert(torch.tensor(xyxy).view(1, 4)) / gn).view(

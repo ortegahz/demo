@@ -15,7 +15,7 @@ fclose(fid);
 
 Y = reshape(A(1:wi*hi), wi, hi)';
 UV = A(wi*hi+1:wi*hi*3/2);
-U = UV(1:2:end); V = UV(2:2:end);
+V = UV(1:2:end); U = UV(2:2:end);
 U = reshape(U, wi/2, hi/2)';
 V = reshape(V, wi/2, hi/2)';
 UR = imresize(U, 2); VR = imresize(V, 2);

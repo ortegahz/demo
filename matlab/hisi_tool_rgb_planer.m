@@ -7,7 +7,7 @@ h = 640;
 
 s = w * h * 3;
 
-fileID = fopen('/home/manu/nfs/mpp/sample/svp/nnie/data/nnie_image/rgb_planar/students_lt_640x640.rgb');
+fileID = fopen('/home/manu/tmp/acfree_640_640_rgb_planner');
 A = fread(fileID, s, 'uint8')';
 fclose(fileID);
 

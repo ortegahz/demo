@@ -77,7 +77,7 @@ def parse_ars():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dir_root_npu', default='/home/manu/nfs/rv1126/install/rknn_yolov5_demo', type=str)
     parser.add_argument('--dir_root_aa',
-                        default='/media/manu/kingstop/workspace/rknn-toolkit/examples/onnx/acfree/snapshot_hq/fp32',
+                        default='/media/manu/kingstop/workspace/rknn-toolkit/examples/onnx/acfree/snapshot/fp32',
                         type=str)
     return parser.parse_args()
 

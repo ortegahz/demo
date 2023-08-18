@@ -22,7 +22,7 @@ def run(args):
 def parse_ars():
     parser = argparse.ArgumentParser()
     parser.add_argument('--path_results_in',
-                        default='/media/manu/kingstop/workspace/rknn-toolkit/examples/onnx/acfree/snapshot_hq/individual_qnt_error_analysis.txt',
+                        default='/media/manu/kingstop/workspace/rknn-toolkit/examples/onnx/acfree/snapshot/individual_qnt_error_analysis.txt',
                         type=str)
     parser.add_argument('--threshold', default=0.99, type=float)
     return parser.parse_args()

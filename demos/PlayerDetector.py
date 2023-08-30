@@ -39,23 +39,33 @@ class PlayerDetector:
         *xyxy_p, conf_p, _ = det_people_pick
         results_kps_pick = results_kps[det_people_pick_idx]
         joints = np.array(results_kps_pick['keypoints']).reshape((17, 3))
+        print(det_people_pick)
+        print(sz_pick)
+        print((self.poi_x, self.poi_y, self.poi_conf))
+        print(joints[7:11, :])
+        print(conf_play)
         dir_r = joints[10, :2] - joints[8, :2]
         dir_r_norm = preprocessing.normalize(dir_r[None, :])
         dir_l = joints[9, :2] - joints[7, :2]
         dir_l_norm = preprocessing.normalize(dir_l[None, :])
+        print(dir_l_norm)
+        print(dir_r_norm)
 
         rescale = 10.
         cxcy_phone = np.array((int(self.poi_x), int(self.poi_y)))
         dir_r_p = cxcy_phone - joints[10, :2]
         dir_r_p_norm = preprocessing.normalize(dir_r_p[None, :])
+        print(dir_r_p_norm)
         cos_r = np.dot(dir_r_p_norm, dir_r_norm.T)[0][0]
         w_r = 2 - cos_r
         dist_r = np.linalg.norm(dir_r_p) * w_r / sz_pick * rescale
         dir_l_p = cxcy_phone - joints[9, :2]
         dir_l_p_norm = preprocessing.normalize(dir_l_p[None, :])
+        print(dir_l_p_norm)
         cos_l = np.dot(dir_l_p_norm, dir_l_norm.T)[0][0]
         w_l = 2 - cos_l
         dist_l = np.linalg.norm(dir_l_p) * w_l / sz_pick * rescale
+        print((dist_l, dist_r))
         color = (0, 0, 128)
         cv2.line(frame, tuple(joints[10, :2].astype(int)), cxcy_phone, color, 2)
         cv2.line(frame, tuple(joints[9, :2].astype(int)), cxcy_phone, color, 2)
@@ -67,7 +77,10 @@ class PlayerDetector:
         conf_kps = (1 / (dist_l + 1.) * joints[9, 2] * self.poi_conf +
                     1 / (dist_r + 1.) * joints[10, 2] * self.poi_conf) / 2.
 
+        print(conf_kps)
+
         conf = args.alpha * conf_play + (1 - args.alpha) * conf_kps
+        print(conf)
         p1, p2 = (int(xyxy[0]), int(xyxy[1])), (int(xyxy[2]), int(xyxy[3]))
         if conf > args.th_esb:
             cv2.rectangle(frame, p1, p2, (0, 0, 255), thickness=5, lineType=cv2.LINE_AA)

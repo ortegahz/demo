@@ -4,9 +4,19 @@ clear; close all;
 %%
 % TODO: different list order for ref and rk
 
-out_ref = load('/home/manu/tmp/pytorch_results.txt');
+% out_ref = load('/home/manu/tmp/pytorch_results.txt');
+% out_ref = load('/home/manu/tmp/results_pytorch_rsn_mid.txt');
+% out_ref = load('/home/manu/tmp/results_pytorch_rsn.txt');
+% out_ref = load('/home/manu/tmp/pytorch_results.txt');
+% out_ref = load('/home/manu/tmp/results_rknn_sim.txt');
+out_ref = load('/home/manu/tmp/pytorch_parser_final_results.txt');
+
 % out_rk = load('/home/manu/tmp/results_rknn.txt');
-out_rk = load('/home/manu/nfs/rv1126/install/rknn_yolov5_demo/npu_parser_results.txt');
+% out_rk = load('/home/manu/tmp/results_rknn_sim_mid.txt');
+% out_rk = load('/home/manu/tmp/results_rknn_sim.txt');
+% out_rk = load('/home/manu/nfs/rv1126/install/rknn_yolov5_demo/npu_parser_results_kps.txt');
+% out_rk = load('/home/manu/nfs/rv1126/install/rknn_yolov5_demo/npu_parser_results.txt');
+out_rk = load('/home/manu/nfs/rv1126/install/rknn_yolov5_demo/npu_parser_final_results.txt');
 
 % out_ref = out_ref(:, 6); out_rk = out_rk(:, 6);
 % out_ref = horzcat(out_ref(:, 1:5), out_ref(:, end));

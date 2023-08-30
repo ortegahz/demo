@@ -124,6 +124,16 @@ class PlayerDetector:
             idx_s = idx_e
         self.pred_phone_cls_lst = pred_phone_cls_lst
 
+    def write_final_results(self, frame, xyxy, conf_play, results_kps,
+                            path_save='/home/manu/tmp/pytorch_parser_final_results.txt'):
+        joints = np.array(results_kps['keypoints']).reshape(-1)
+        gn = torch.tensor(frame.shape)[[1, 0, 1, 0]]
+        xywh = (self.inferer_esb.box_convert(torch.tensor(xyxy).view(1, 4)) / gn).view(
+            -1).tolist()  # normalized xywh
+        line = (0, *xywh, self.poi_x, self.poi_y, self.poi_conf, conf_play, *joints)
+        with open(path_save, 'a') as f:
+            f.write(('%g ' * len(line)).rstrip() % line + '\n')
+
     def write_esb_results(self, frame, xyxy, conf_play, path_save):
         gn = torch.tensor(frame.shape)[[1, 0, 1, 0]]
         xywh = (self.inferer_esb.box_convert(torch.tensor(xyxy).view(1, 4)) / gn).view(
@@ -162,9 +172,11 @@ class PlayerDetector:
         results_kps, det_people = None, None
         if len(det_play):
             idets_kps = det_play[:, :5].cpu().detach().numpy()
+            logging.info(det_play)
             idets_kps[:, 2:4] = idets_kps[:, 2:4] - idets_kps[:, :2]  # xyxy to xywh
             idets_kps[:, 2] *= 1.1
             idets_kps[:, 3] *= 2.2
+            logging.info(idets_kps)
             results_kps = self.inferer_kps.inference(frame, idets_kps)
             det_people = copy.deepcopy(det_play)
             det_people[:, 2:4] = torch.tensor(idets_kps[:, :2] + idets_kps[:, 2:4])  # xywh to xyxy
@@ -182,6 +194,9 @@ class PlayerDetector:
 
             # write esb results
             self.write_esb_results(frame, xyxy, conf_play, args.path_save_txt)
+
+            # write final results
+            self.write_final_results(frame, xyxy, conf_play, results_kps[idx])
 
 
 def run(args):

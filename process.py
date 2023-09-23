@@ -9,6 +9,7 @@ def process_decoder(q, path_video, num_skip):
         print("Error opening video steam")
 
     while cap.isOpened():
+        time.sleep(0.05)
         ret, frame = cap.read()
         # frame = cv2.resize(frame, None, fx=0.5, fy=0.5)
         if ret is True:

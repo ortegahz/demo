@@ -1,9 +1,9 @@
 clear; close all;
 
-out_ref = load('/home/manu/tmp/pytorch_outputs_2.txt');  % caffe c h w -> matlab w h c
-out_q = load('/home/manu/nfs/mpp/sample/svp/nnie/seg0_layer79_output0_inst.linear.float');  % caffe w h c -> matlab c w h
+out_ref = load('/home/manu/tmp/pytorch_outputs_0.txt');  % caffe c h w -> matlab w h c
+out_q = load('/home/manu/nfs/mpp/sample/svp/nnie/seg0_layer73_output0_inst.linear.float');  % caffe w h c -> matlab c w h
 
-out_ref_rs = reshape(out_ref, 20, 20, 15);  % caffe c h w -> matlab w h c
+out_ref_rs = reshape(out_ref, 80, 80, 8);  % caffe c h w -> matlab w h c
 out_ref_perm = permute(out_ref_rs,[3 1 2]);  % matlab w h c -> matlab c w h
 out_ref = reshape(out_ref_perm,[],1);
 

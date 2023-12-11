@@ -11,8 +11,8 @@ def set_logging():
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--path_model_in', default='/media/manu/data/docs/nxp/rs_last_8classes_exp15.onnx')
-    parser.add_argument('--path_model_out', default='/home/manu/tmp/rs_last_8classes_exp15.onnx')
+    parser.add_argument('--path_model_in', default='/home/manu/tmp/model_bn.onnx')
+    parser.add_argument('--path_model_out', default='/home/manu/tmp/model_bn_shape.onnx')
     return parser.parse_args()
 
 

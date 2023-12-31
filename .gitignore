@@ -30,3 +30,5 @@ svn/
 run/
 
 *.m~
+
+demos/runs/inference/exp/

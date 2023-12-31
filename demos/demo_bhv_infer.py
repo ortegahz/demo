@@ -5,16 +5,18 @@ import sys
 
 from utils.logging import set_logging
 
-os.environ['YOLO_HOME'] = '/media/manu/kingstop/workspace/YOLOv6'
+# os.environ['YOLO_HOME'] = '/media/manu/kingstop/workspace/YOLOv6'  # multi-class model engine
+os.environ['YOLO_HOME'] = '/home/manu/workspace/YOLOv6'  # single-class model engine
 sys.path.append(os.environ['YOLO_HOME'])
 from tools.infer import run
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', type=str, default='/home/manu/tmp/ncml_nsilu/weights/best_ckpt.pt')
+    # parser.add_argument('--weights', type=str, default='/home/manu/tmp/ncml_nsilu/weights/best_ckpt.pt')  # multi
+    parser.add_argument('--weights', type=str, default='/home/manu/tmp/exp7/weights/best_ckpt.pt')  # single
     parser.add_argument('--source', type=str,
-                        default='/media/manu/kingstoo/tmp/vlc-record-2023-05-16-11h08m28s-rtsp___192.168.30.155_554_av_live-.mp4')
+                        default='/media/manu/samsung/videos/behavior/趴桌.mp4')
     parser.add_argument('--webcam', action='store_true', help='whether to use webcam.')
     parser.add_argument('--webcam-addr', type=str, default='0',
                         help='the web camera address, local camera or rtsp address.')

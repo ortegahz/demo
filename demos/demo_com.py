@@ -5,13 +5,16 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 import serial
+import random
 
 
-def plot(db, keys, pause_time_s=1):
+def plot(db, keys, colors, pause_time_s=1):
     plt.ion()
-    for key in keys:
+    # for key in keys:
+    for i, key in enumerate(keys):
         time_idxs = range(len(db[key]))
-        plt.plot(np.array(time_idxs), np.array(db[key]).astype(float), label=key)
+        plt.subplot(len(keys), 1, i + 1)
+        plt.plot(np.array(time_idxs), np.array(db[key]).astype(float), label=key, color=colors[i])
         plt.legend()
         plt.grid()
     plt.show()
@@ -35,6 +38,9 @@ def parse_args():
 
 
 def run(**args):
+    colors = list()
+    for i in range(len(args['db_keys'])):
+        colors.append([random.random(), random.random(), random.random()])
     ser = serial.Serial(args['dev_ser'], args['baud_rate'])
     ser.flushInput()
     db = dict()
@@ -64,7 +70,7 @@ def run(**args):
         for i, key in enumerate(args['db_keys']):
             db[key].append(data[i])
             # logging.info(db[key][-1])
-        plot(db, args['db_keys'])
+        plot(db, args['db_keys'], colors)
         time.sleep(args['interval'])
 
 

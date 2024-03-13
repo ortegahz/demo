@@ -11,7 +11,8 @@ h = 18; w = 34;
 % out_ref = load('/home/manu/nfs/data/python_gaussian_one.txt');
 % out_ref = load('/home/manu/nfs/data/python_img_crop_fire.txt');
 % out_ref = load('/home/manu/nfs/data/python_x.txt');
-out_ref = load('/home/manu/nfs/data/python_y.txt');
+% out_ref = load('/home/manu/nfs/data/python_y.txt');
+out_ref = load('/home/manu/tmp/rknn_output_5.txt');
 
 % figure;
 % imshow(reshape(out_ref, w, h)');
@@ -26,7 +27,8 @@ out_ref = load('/home/manu/nfs/data/python_y.txt');
 % out_q = load('/home/manu/nfs/data/cpp_gaussianOne.txt');
 % out_q = load('/home/manu/nfs/data/cpp_srcGray(expandRectOne).txt');
 % out_q = load('/home/manu/nfs/data/cpp_SrcSobelRoi.txt');
-out_q = load('/home/manu/nfs/data/cpp_SrcSobelRoiMixed.txt');
+% out_q = load('/home/manu/nfs/data/cpp_SrcSobelRoiMixed.txt');
+out_q = load('/home/manu/tmp/onnx::Reshape_286.txt');
 
 % figure;
 % imshow(reshape(out_q, w, h)');

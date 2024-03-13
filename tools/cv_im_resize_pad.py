@@ -35,13 +35,13 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--path_img_in',
-        default='/media/manu/samsung/pics/player.bmp',
+        default='/media/manu/data/pics/students_lt.bmp',
         type=str)
     parser.add_argument(
         '--path_img_out',
-        default='/media/manu/samsung/pics/player_1280.bmp',
+        default='/media/manu/data/pics/students_lt_160.bmp',
         type=str)
-    parser.add_argument('--img_size', nargs='+', type=int, default=[1280, 1280], help='new shape h x w')
+    parser.add_argument('--img_size', nargs='+', type=int, default=[160, 160], help='new shape h x w')
     return parser.parse_args()
 
 

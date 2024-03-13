@@ -3,7 +3,7 @@ import logging
 
 import cv2
 
-from utils.logging import set_logging
+from utils.utils_funcs import set_logging
 
 
 def run(args):

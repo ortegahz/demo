@@ -6,7 +6,7 @@ import random
 import shutil
 
 from tqdm import tqdm
-from utils.logging import set_logging
+from utils.utils_funcs import set_logging
 
 
 def make_dirs(args):

@@ -2,7 +2,7 @@ import logging
 
 import numpy as np
 
-from utils.logging import set_logging
+from utils.utils_funcs import set_logging
 
 
 def ious_calc(bb_a, bb_b):

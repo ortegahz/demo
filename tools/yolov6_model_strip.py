@@ -3,7 +3,7 @@ import logging
 import torch
 import sys
 
-from utils.logging import set_logging
+from utils.utils_funcs import set_logging
 
 sys.path.append('/home/manu/workspace/YOLOv6')
 

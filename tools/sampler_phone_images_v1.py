@@ -13,7 +13,7 @@ from sklearn import preprocessing
 from tqdm import tqdm
 
 from utils.ious import iogs_calc
-from utils.logging import set_logging
+from utils.utils_funcs import set_logging
 
 os.environ['RSN_HOME'] = '/media/manu/kingstop/workspace/RSN'
 sys.path.append(os.environ['RSN_HOME'])

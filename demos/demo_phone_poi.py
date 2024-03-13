@@ -12,7 +12,7 @@ from sklearn import preprocessing
 
 from utils.decoder import process_decoder
 from utils.ious import iogs_calc
-from utils.logging import set_logging
+from utils.utils_funcs import set_logging
 
 # using branch manu_demo_api
 os.environ['RSN_HOME'] = '/media/manu/kingstop/workspace/RSN'

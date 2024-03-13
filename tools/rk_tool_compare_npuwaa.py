@@ -5,7 +5,7 @@ import os
 
 import numpy as np
 
-from utils.logging import set_logging
+from utils.utils_funcs import set_logging
 
 
 def cos_sim_calc(array_a, array_b):

@@ -3,7 +3,7 @@ import logging
 
 import cv2
 
-from utils.logging import set_logging
+from utils.utils_funcs import set_logging
 
 
 def letterbox(im, new_shape=(640, 640), color=(0, 0, 0)):

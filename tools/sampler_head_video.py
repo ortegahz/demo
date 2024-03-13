@@ -13,7 +13,7 @@ from multiprocessing import Process, Queue
 
 sys.path.append('./')
 from utils.decoder import process_decoder
-from utils.logging import set_logging
+from utils.utils_funcs import set_logging
 from utils.ious import iogs_calc
 
 sys.path.append('/media/manu/kingstop/workspace/YOLOv6')

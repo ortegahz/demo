@@ -8,7 +8,7 @@ import cv2
 from tqdm import tqdm
 
 sys.path.append('./')
-from utils.logging import set_logging
+from utils.utils_funcs import set_logging
 
 sys.path.append('/media/manu/kingstop/workspace/YOLOv6')
 from yolov6.core.inferer import Inferer

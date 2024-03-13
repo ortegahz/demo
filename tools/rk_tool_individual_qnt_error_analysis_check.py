@@ -1,7 +1,7 @@
 import argparse
 import logging
 
-from utils.logging import set_logging
+from utils.utils_funcs import set_logging
 
 
 def run(args):

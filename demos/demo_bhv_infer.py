@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 
-from utils.logging import set_logging
+from utils.utils_funcs import set_logging
 
 # os.environ['YOLO_HOME'] = '/media/manu/kingstop/workspace/YOLOv6'  # multi-class model engine
 os.environ['YOLO_HOME'] = '/home/manu/workspace/YOLOv6'  # single-class model engine

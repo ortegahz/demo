@@ -15,4 +15,4 @@ Y_fit = polyval(p, X);
 
 plot(X, Y, 'o', X, Y_fit, '-');
 
-fprintf('%.16f\n', p);
+fprintf('%.32f\n', p);

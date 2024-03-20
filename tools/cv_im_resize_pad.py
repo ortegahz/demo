@@ -35,11 +35,11 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--path_img_in',
-        default='/home/manu/tmp/fire_test_20240318/lQDPKGkwiWEfP8nNBBDNB4Cw1DnkovXlHIwF5XdcYaNdAQ_1920_1040.jpg',
+        default='/home/manu/tmp/fire_test_20240318/fire_20230518_000080.jpg',
         type=str)
     parser.add_argument(
         '--path_img_out',
-        default='/home/manu/tmp/fire_test_20240318/lQDPKGkwiWEfP8nNBBDNB4Cw1DnkovXlHIwF5XdcYaNdAQ_1920_1040.bmp',
+        default='/home/manu/tmp/fire_test_20240318/fire_20230518_000080.bmp',
         type=str)
     parser.add_argument('--img_size', nargs='+', type=int, default=[540, 960], help='new shape h x w')
     return parser.parse_args()

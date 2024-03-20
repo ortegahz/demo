@@ -10,8 +10,8 @@ from utils.utils_funcs import set_logging, make_dirs
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_in', default='/home/manu/tmp/sampling_25fps')
-    parser.add_argument('--dir_out', default='/home/manu/nfs/data/nir_data/sampling_25fps_bmp')
+    parser.add_argument('--dir_in', default='/home/manu/workspace/sca/yolo/model/quan')
+    parser.add_argument('--dir_out', default='/home/manu/workspace/sca/yolo/model/quan_bmp')
     return parser.parse_args()
 
 

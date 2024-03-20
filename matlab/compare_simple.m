@@ -1,5 +1,7 @@
 clear; close all;
-h = 18; w = 34;
+% h = 17; w = 30;
+h = 34; w = 60;
+% h = 68; w = 120;
 
 % out_ref = load('/home/manu/nfs/data/python_img_.txt');
 % out_ref = load('/home/manu/nfs/data/python_img_gray.txt');
@@ -12,7 +14,10 @@ h = 18; w = 34;
 % out_ref = load('/home/manu/nfs/data/python_img_crop_fire.txt');
 % out_ref = load('/home/manu/nfs/data/python_x.txt');
 % out_ref = load('/home/manu/nfs/data/python_y.txt');
-out_ref = load('/home/manu/tmp/rknn_output_5.txt');
+out_ref = load('/home/manu/tmp/rknn_output_0.txt');
+% out_ref = reshape(out_ref, 24, w, h);
+% out_ref = permute(out_ref, [3 2 1]);
+% out_ref = out_ref(:);
 
 % figure;
 % imshow(reshape(out_ref, w, h)');
@@ -28,7 +33,11 @@ out_ref = load('/home/manu/tmp/rknn_output_5.txt');
 % out_q = load('/home/manu/nfs/data/cpp_srcGray(expandRectOne).txt');
 % out_q = load('/home/manu/nfs/data/cpp_SrcSobelRoi.txt');
 % out_q = load('/home/manu/nfs/data/cpp_SrcSobelRoiMixed.txt');
-out_q = load('/home/manu/tmp/onnx::Reshape_286.txt');
+out_q = load('/home/manu/workspace/sca/yolo/output/yolo/quant_ori_result/image/lQDPKGkwiWEfP8nNBBDNB4Cw1DnkovXlHIwF5XdcYaNdAQ_960_540.bmp/_model.0_conv_Conv.txt');
+% out_q = load('/home/manu/tmp/output1(2).txt');
+% out_q = reshape(out_q, 24, w, h);
+% out_q = permute(out_q, [3 2 1]);
+% out_q = out_q(:);
 
 % figure;
 % imshow(reshape(out_q, w, h)');

@@ -3,6 +3,8 @@ import logging
 
 import cv2
 
+from tools.cv_im_resize_pad import letterbox
+
 
 def set_logging():
     log_root = logging.getLogger()
@@ -11,8 +13,8 @@ def set_logging():
 
 def parse_args():
     parser = argparse.ArgumentParser('video player')
-    parser.add_argument('--path_in_video',
-                        default='/home/manu/视频/vlc-record-2023-11-29-15h24m48s-rtsp___172.20.20.181_ir_stream-.mp4')
+    parser.add_argument('--path_in_video', default='/home/manu/tmp/fire (219).mp4')
+    parser.add_argument('--img_size', nargs='+', type=int, default=[540, 960], help='new shape h x w')
     return parser.parse_args()
 
 
@@ -31,13 +33,16 @@ def main():
     cnt, idx = 0, 0
     while cap.isOpened():
         ret, frame = cap.read()
+        if not ret:
+            logging.error(f"Can't receive frame (stream end?). Exiting ...")
+            break
         cnt += 1
 
-        if not cnt % 25 == 0:
+        if not cnt % 10 == 0:
             continue
 
-        if frame.shape[0] != 1080 and frame.shape[1] != 1440:
-            frame = cv2.resize(frame, (1440, 1080), interpolation=cv2.INTER_CUBIC)
+        if len(args.img_size) > 0:
+            frame, _, _ = letterbox(frame, new_shape=(args.img_size[0], args.img_size[1]))
 
         cv2.imwrite(f"/home/manu/tmp/snapshot/{idx}.bmp", frame)
         idx += 1

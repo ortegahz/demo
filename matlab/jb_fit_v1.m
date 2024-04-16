@@ -2,6 +2,11 @@
 close all;
 
 %%
+save_root = '/home/manu/tmp/matlab_plot';
+rmdir(save_root, 's');
+mkdir(save_root);
+
+%%
 temp = 20; humid = 20;
 X1 = [792, 1095, 1386, 1540, 1639, 1709, 1906, 1921, 2031, 2111, 2189, 2254];
 X2 = [716, 986, 1247, 1399, 1485, 1545, 1721, 1731, 1827, 1881, 1934, 1973];
@@ -17,7 +22,7 @@ fit_sensor(X1, X2, Y, temp, humid);
 temp = 40; humid = 20;
 X1 = [1083, 1445, 1653, 1721, 1917, 1983, 2071, 2182, 2249, 2318, 2413, 2527, 2981];
 X2 = [924, 1293, 1473, 1592, 1709, 1746, 1821, 1925, 1980, 2040, 2120, 2205, 2590];
-Y = [45, 419, 467, 82, 115, 150, 195, 224, 254, 302, 334, 377, 632];
+Y = [45, 82, 115, 150, 195, 224, 254, 302, 334, 377, 419, 467, 632];
 fit_sensor(X1, X2, Y, temp, humid);
 
 temp = 50; humid = 20;
@@ -46,14 +51,34 @@ fit_sensor(X1, X2, Y, temp, humid);
 
 
 %%
+% function fit_sensor(X1, X2, Y, temp, humid)
+%     X = [X1, X2]; Y = [Y, Y];
+%     p = polyfit(X, Y, 1);
+%     Y_fit = polyval(p, X);
+%     plot(X, Y, 'ro', X, Y_fit, 'g-');
+%     fprintf('%.4f %.4f --> %.4f, %.4f\n', temp, humid, p(1), p(2));
+%     figureHandle = gcf;
+%     save_name = sprintf('/home/manu/tmp/matlab_plot/%f-%f-%f-%f.png', temp, humid, p(1), p(2));
+%     title(save_name);
+%     saveas(figureHandle, save_name);
+% end
+
 function fit_sensor(X1, X2, Y, temp, humid)
-    X = [X1, X2]; Y = [Y, Y];
-    p = polyfit(X, Y, 1);
-    Y_fit = polyval(p, X);
-    plot(X, Y, 'ro', X, Y_fit, 'g-');
-    fprintf('%.4f %.4f --> %.4f, %.4f\n', temp, humid, p(1), p(2));
+    order = 2;
+    p1 = polyfit(X1, Y, order);
+    p2 = polyfit(X2, Y, order);
+    yfit1 = polyval(p1, X1);
+    yfit2 = polyval(p2, X2);
+    hold on;
+    plot(X1, Y, 'bo', X1, yfit1, 'b-');
+    plot(X2, Y, 'go', X2, yfit2, 'g-');
+    hold off;
+    xlim([0, 3300]); ylim([0, 700]);
+    fprintf('p1 --> %.32f\n', p1);
+%     fprintf('p2 --> %.32f\n', p2);
+%     disp(p1); disp(p2);
     figureHandle = gcf;
-    save_name = sprintf('/home/manu/tmp/matlab_plot/%f_%f-%f_%f.png', temp, humid, p(1), p(2));
+    save_name = sprintf('/home/manu/tmp/matlab_plot/%f-%f.png', temp, humid);
     title(save_name);
     saveas(figureHandle, save_name);
 end

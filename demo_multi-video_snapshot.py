@@ -1,18 +1,24 @@
-import cv2
 import os
-import time
 import shutil
+import time
+
+import cv2
+
+
+def read_paths_from_file(file_path):
+    with open(file_path, 'r') as file:
+        paths = [line.strip() for line in file if line.strip()]
+    return paths
+
 
 if __name__ == '__main__':
     # params
-    PATHS_VID = [
-        '/home/manu/tmp/videos/vlc-record-2022-01-15-14h36m02s-rtsp___192.168.3.93_554_ch0_1-.mp4',
-        '/home/manu/tmp/videos/vlc-record-2022-01-15-14h56m30s-rtsp___192.168.3.93_554_ch0_1-.mp4',
-        '/home/manu/tmp/videos/vlc-record-2022-01-15-16h58m01s-rtsp___192.168.3.93_554_ch0_1-.mp4',
-    ]
-    DIR_OUT = '/home/manu/tmp/snapshots'
+    FILE_PATHS_VID = 'video_paths.txt'
+    DIR_OUT = 'snapshots'
     B_RESET = True
     NUM_SKIP = 25 * 10  # [NUM_SKIP s]
+
+    PATHS_VID = read_paths_from_file(FILE_PATHS_VID)
 
     if B_RESET:
         shutil.rmtree(DIR_OUT)
